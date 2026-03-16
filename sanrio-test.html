@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎀 나는 어떤 산리오 캐릭터?</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fff5f8;
+  --bg2: #ffeef4;
+  --pink: #ff6fa3;
+  --pink-light: #ffb3ce;
+  --pink-pale: #ffe4ef;
+  --lavender: #c9a8e8;
+  --mint: #a8ddd8;
+  --yellow: #ffe082;
+  --blue: #a8c8f0;
+  --text: #3d2035;
+  --muted: #b89aab;
+  --card: #ffffff;
+  --shadow: rgba(255,111,163,0.15);
+  --border: rgba(255,111,163,0.2);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 배경 버블 */
+.bubbles {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0; overflow: hidden;
+}
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.18;
+  animation: bubbleFloat var(--d,8s) ease-in-out infinite;
+  animation-delay: var(--delay,0s);
+}
+@keyframes bubbleFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.05); }
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,179,206,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 85% 80%, rgba(201,168,232,0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 60% 30%, rgba(168,221,216,0.2) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+.wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  position: relative; z-index: 1;
+}
+
+/* ── 인트로 ── */
+#screen-intro {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100vh; text-align: center;
+  animation: fadeUp 0.7s ease both;
+}
+
+.intro-ribbon {
+  font-size: 52px; margin-bottom: 16px;
+  animation: bounce 1.8s ease-in-out infinite;
+}
+@keyframes bounce {
+  0%,100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+}
+
+.intro-title {
+  font-family: 'Nunito', cursive;
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.intro-title .highlight {
+  color: var(--pink);
+  position: relative;
+  display: inline-block;
+}
+.intro-title .highlight::after {
+  content: '';
+  position: absolute; bottom: -2px; left: 0; right: 0;
+  height: 6px;
+  background: var(--yellow);
+  border-radius: 100px;
+  z-index: -1;
+}
+
+.intro-sub {
+  font-size: 14px; color: var(--muted);
+  line-height: 1.8; margin-bottom: 36px;
+  font-weight: 300;
+}
+
+/* 캐릭터 미리보기 */
+.char-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 36px;
+}
+.char-bubble {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 14px;
+  font-size: 13px; color: var(--muted);
+  font-weight: 600;
+  box-shadow: 0 2px 10px var(--shadow);
+  animation: fadeUp 0.5s ease both;
+}
+
+.btn-start {
+  background: linear-gradient(135deg, var(--pink), #ff8fbf);
+  color: #fff; border: none;
+  border-radius: 100px;
+  padding: 18px 56px;
+  font-family: 'Nunito', cursive;
+  font-size: 19px; font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(255,111,163,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.02em;
+}
+.btn-start:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(255,111,163,0.5); }
+.btn-start:active { transform: translateY(0); }
+
+.intro-note { margin-top: 16px; font-size: 12px; color: var(--muted); }
+
+/* ── 문항 ── */
+#screen-quiz { display: none; padding-top: 48px; }
+
+.progress-wrap { margin-bottom: 28px; }
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted); margin-bottom: 8px;
+  font-weight: 600;
+}
+.progress-bar {
+  height: 8px; background: var(--pink-pale);
+  border-radius: 100px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--pink-light), var(--pink));
+  border-radius: 100px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.question-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 28px;
+  padding: 36px 28px 32px;
+  box-shadow: 0 8px 40px var(--shadow);
+  animation: fadeUp 0.4s ease both;
+}
+
+.q-num {
+  font-family: 'Nunito', cursive;
+  font-size: 12px; color: var(--pink);
+  font-weight: 800; margin-bottom: 14px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+}
+.q-text {
+  font-size: 17px; font-weight: 700;
+  line-height: 1.65; margin-bottom: 26px;
+  color: var(--text);
+}
+
+.options { display: flex; flex-direction: column; gap: 10px; }
+
+.opt-btn {
+  background: #fff8fb;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 15px 20px;
+  text-align: left;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1.5;
+  font-weight: 400;
+  position: relative; overflow: hidden;
+}
+.opt-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #ffb3ce, #ff6fa3);
+  opacity: 0; transition: opacity 0.2s;
+}
+.opt-btn span { position: relative; z-index: 1; color: var(--text); }
+.opt-btn:hover {
+  border-color: var(--pink);
+  transform: translateX(5px);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+.opt-btn.selected { border-color: var(--pink); }
+.opt-btn.selected::before { opacity: 1; }
+.opt-btn.selected span { color: #fff; font-weight: 700; }
+
+/* ── 결과 ── */
+#screen-result { display: none; padding-top: 40px; }
+
+.result-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 32px;
+  padding: 40px 28px 36px;
+  box-shadow: 0 12px 60px var(--shadow);
+  text-align: center;
+  animation: fadeUp 0.7s ease both;
+  margin-bottom: 16px;
+}
+
+/* 캐릭터 아바타 */
+.char-avatar-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 20px;
+}
+.char-avatar {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid white;
+  box-shadow: 0 0 0 3px var(--pink-light), 0 8px 32px var(--shadow);
+  background: var(--pink-pale);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 80px;
+  animation: bounce-slow 3s ease-in-out infinite;
+  margin-bottom: 0;
+}
+.char-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+@keyframes bounce-slow {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.result-tag {
+  display: inline-block;
+  background: var(--pink-pale);
+  color: var(--pink);
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.result-name {
+  font-family: 'Nunito', cursive;
+  font-size: 38px; font-weight: 900;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.result-en {
+  font-size: 13px; color: var(--muted);
+  font-weight: 400; margin-bottom: 6px;
+}
+.result-subtitle {
+  font-size: 15px; font-weight: 700;
+  color: var(--pink); margin-bottom: 22px;
+}
+.result-desc {
+  font-size: 14px; color: #5a3a4a;
+  line-height: 1.9; text-align: left;
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  border: 1.5px solid var(--border);
+}
+.traits {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin-bottom: 28px;
+}
+.trait {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px; color: var(--pink);
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.result-btns { display: flex; flex-direction: column; gap: 10px; }
+
+.btn-kakao {
+  background: #FEE500; color: #3C1E1E;
+  border: none; border-radius: 16px;
+  padding: 16px; font-family: 'Nunito', cursive;
+  font-size: 16px; font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 16px rgba(254,229,0,0.4);
+}
+.btn-kakao:hover { opacity: 0.92; transform: translateY(-2px); }
+
+.btn-copy {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 16px; padding: 14px;
+  font-family: 'Nunito', cursive;
+  font-size: 14px; font-weight: 700;
+  color: var(--muted); cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-copy:hover { border-color: var(--pink); color: var(--pink); }
+
+.btn-retry {
+  background: transparent;
+  border: 2px solid var(--pink-pale);
+  border-radius: 16px; padding: 14px;
+  font-family: 'Nunito', cursive;
+  font-size: 14px; font-weight: 700;
+  color: var(--muted); cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-retry:hover { border-color: var(--lavender); color: var(--lavender); }
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.toast {
+  position: fixed; bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text);
+  color: #fff; border-radius: 100px;
+  padding: 12px 24px; font-size: 13px;
+  opacity: 0; transition: all 0.3s;
+  pointer-events: none; z-index: 999;
+  white-space: nowrap; font-weight: 600;
+}
+.toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="bubbles" id="bubbles"></div>
+
+<div class="wrap">
+
+<!-- 인트로 -->
+<div id="screen-intro">
+  <div class="intro-ribbon">🎀</div>
+  <h1 class="intro-title">나는 어떤<br><span class="highlight">산리오</span> 캐릭터?</h1>
+  <p class="intro-sub">12가지 질문으로 알아보는<br>나와 꼭 닮은 산리오 캐릭터!</p>
+  <div class="char-row">
+    <span class="char-bubble">🐱 헬로키티</span>
+    <span class="char-bubble">🍮 폼폼푸린</span>
+    <span class="char-bubble">🎀 마이멜로디</span>
+    <span class="char-bubble">☁️ 시나모롤</span>
+    <span class="char-bubble">🖤 쿠로미</span>
+    <span class="char-bubble">🐶 포차코</span>
+    <span class="char-bubble">🌟 트윈스타</span>
+    <span class="char-bubble">🐧 배드바츠마루</span>
+    <span class="char-bubble">🍄 코기뮹</span>
+    <span class="char-bubble">🐟 한교동</span>
+    <span class="char-bubble">🌷 헬로미미</span>
+    <span class="char-bubble">🎵 디어다니엘</span>
+    <span class="char-bubble">💎 챠미키티</span>
+    <span class="char-bubble">🥚 구데타마</span>
+    <span class="char-bubble">🎹 마이스윗피아노</span>
+    <span class="char-bubble">🐻 모카</span>
+    <span class="char-bubble">🌈 타이니참</span>
+  </div>
+  <button class="btn-start" onclick="startQuiz()">✨ 테스트 시작!</button>
+  <p class="intro-note">🌸 12문항 · 약 2분</p>
+</div>
+
+<!-- 문항 -->
+<div id="screen-quiz">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="prog-text">1 / 12</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="question-card">
+    <div class="q-num" id="q-num">Q 01</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div id="screen-result">
+  <div class="result-card">
+    <div class="char-avatar-wrap">
+      <div class="char-avatar" id="res-avatar"></div>
+    </div>
+    <div class="result-tag" id="res-tag">SANRIO</div>
+    <div class="result-name" id="res-name"></div>
+    <div class="result-en" id="res-en"></div>
+    <div class="result-subtitle" id="res-subtitle"></div>
+    <div class="result-desc" id="res-desc"></div>
+    <div class="traits" id="res-traits"></div>
+    <div class="result-btns">
+      <button class="btn-kakao" onclick="shareKakao()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2C5.58 2 2 4.91 2 8.5c0 2.28 1.38 4.28 3.46 5.5L4.5 17.5l3.9-2.14c.52.08 1.06.14 1.6.14 4.42 0 8-2.91 8-6.5S14.42 2 10 2z" fill="#3C1E1E"/></svg>
+        카카오톡으로 공유하기
+      </button>
+      <button class="btn-copy" onclick="copyLink()">🔗 링크 복사</button>
+      <button class="btn-retry" onclick="retry()">🔄 다시 하기</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+<script>
+// 버블 생성
+(function() {
+  const wrap = document.getElementById('bubbles');
+  const colors = ['#ffb3ce','#c9a8e8','#a8ddd8','#ffe082','#a8c8f0','#ffd6e7'];
+  for (let i = 0; i < 12; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 40 + Math.random() * 120;
+    b.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --d:${6+Math.random()*6}s;
+      --delay:${Math.random()*4}s;
+    `;
+    wrap.appendChild(b);
+  }
+})();
+
+// ── 문항 ──
+const QUESTIONS = [
+  {
+    text: "주말 오후, 나는 보통 뭘 하고 있을까?",
+    options: [
+      { label: "☁️ 침대에서 뒹굴뒹굴~ 낮잠이 최고야", scores: {포근:2, 차분:2} },
+      { label: "🎀 친구랑 카페 가서 수다 떨기", scores: {다정:2, 밝음:2} },
+      { label: "🌟 뭔가 만들거나 꾸미기에 빠져있어", scores: {창의:2, 독특:2} },
+      { label: "💪 운동이나 야외 활동으로 에너지 발산!", scores: {활발:3, 밝음:1} }
+    ]
+  },
+  {
+    text: "친구가 고민을 털어놓았을 때 나는?",
+    options: [
+      { label: "🤗 일단 꼭 안아주고 \"다 괜찮을 거야\" 공감 먼저", scores: {다정:3, 포근:1} },
+      { label: "💡 원인을 파악하고 해결책을 같이 찾아줘", scores: {차분:2, 독립:2} },
+      { label: "😄 유머로 기분 전환! 웃으면 반은 해결이야", scores: {밝음:3, 활발:1} },
+      { label: "🖤 그냥 옆에 조용히 있어줄게, 말 안 해도 돼", scores: {독립:2, 차분:2} }
+    ]
+  },
+  {
+    text: "나의 패션 스타일을 한 마디로 하면?",
+    options: [
+      { label: "🎀 리본, 레이스, 핑크! 사랑스럽고 귀엽게", scores: {다정:2, 포근:2} },
+      { label: "🖤 블랙 기반의 엣지 있는 쿨한 스타일", scores: {독립:2, 독특:2} },
+      { label: "☁️ 편하고 부드러운 파스텔 캐주얼", scores: {포근:3, 차분:1} },
+      { label: "✨ 반짝반짝! 눈에 띄는 화려한 스타일", scores: {밝음:2, 창의:2} }
+    ]
+  },
+  {
+    text: "좋아하는 음식은?",
+    options: [
+      { label: "🍮 푸딩, 크림, 카스테라 같은 부드럽고 달콤한 것", scores: {포근:3, 차분:1} },
+      { label: "🍓 딸기 케이크, 마카롱 같은 예쁜 디저트", scores: {다정:2, 창의:2} },
+      { label: "🍕 피자, 치킨! 든든하고 맛있으면 그만이야", scores: {활발:3, 밝음:1} },
+      { label: "🍫 초콜릿, 쿠키 같은 진하고 달콤쌉쌀한 것", scores: {독특:2, 독립:2} }
+    ]
+  },
+  {
+    text: "내가 꿈꾸는 완벽한 공간은?",
+    options: [
+      { label: "☁️ 구름처럼 포근한 흰색 침대와 넓은 창문", scores: {포근:3, 차분:1} },
+      { label: "🌸 꽃과 리본으로 가득한 사랑스러운 방", scores: {다정:2, 창의:2} },
+      { label: "🖤 깔끔하고 시크한 미니멀 공간", scores: {독립:3, 차분:1} },
+      { label: "🌈 알록달록 내 개성이 가득한 나만의 아지트", scores: {창의:2, 독특:2} }
+    ]
+  },
+  {
+    text: "처음 보는 사람을 만났을 때 나는?",
+    options: [
+      { label: "😊 먼저 말 걸고 금방 친해지는 편이야", scores: {밝음:3, 활발:1} },
+      { label: "🌸 수줍게 웃으면서 천천히 마음을 열어", scores: {다정:2, 포근:2} },
+      { label: "😶 조용히 있다가 상대가 먼저 오면 친해져", scores: {차분:2, 독립:2} },
+      { label: "😏 독특한 매력으로 상대가 먼저 호기심 갖게 해", scores: {독특:3, 독립:1} }
+    ]
+  },
+  {
+    text: "나를 가장 잘 표현하는 동물은?",
+    options: [
+      { label: "🐰 토끼 - 귀엽고 순수하고 사랑스러운", scores: {다정:3, 포근:1} },
+      { label: "🐶 강아지 - 활발하고 충성스럽고 밝은", scores: {활발:2, 밝음:2} },
+      { label: "🐱 고양이 - 독립적이고 쿨하고 신비로운", scores: {독립:2, 독특:2} },
+      { label: "🐻 곰 - 포근하고 든든하고 느긋한", scores: {포근:3, 차분:1} }
+    ]
+  },
+  {
+    text: "스트레스 받을 때 푸는 방법은?",
+    options: [
+      { label: "💤 그냥 많이 자고 일어나면 돼", scores: {포근:3, 차분:1} },
+      { label: "🗣️ 친구한테 전화해서 다 털어놔야 해결돼", scores: {다정:2, 밝음:2} },
+      { label: "🎨 혼자 뭔가 만들거나 낙서하면서 풀어", scores: {창의:2, 독립:2} },
+      { label: "🎶 음악 크게 틀고 막 춤추거나 노래해", scores: {활발:2, 밝음:2} }
+    ]
+  },
+  {
+    text: "학교나 회사에서 나의 포지션은?",
+    options: [
+      { label: "🌟 분위기 메이커! 모두를 웃게 만드는 사람", scores: {밝음:3, 활발:1} },
+      { label: "🤝 묵묵히 모두를 챙기는 든든한 서포터", scores: {다정:2, 포근:2} },
+      { label: "💼 혼자서도 잘하는 개인플레이 스타일", scores: {독립:3, 차분:1} },
+      { label: "🎨 독창적인 아이디어를 내는 크리에이터", scores: {창의:3, 독특:1} }
+    ]
+  },
+  {
+    text: "나에게 가장 소중한 것은?",
+    options: [
+      { label: "👫 소중한 사람들과의 따뜻한 시간", scores: {다정:3, 포근:1} },
+      { label: "😴 충분한 휴식과 나만의 평화로운 시간", scores: {포근:2, 차분:2} },
+      { label: "🗽 내 방식대로 살 수 있는 자유", scores: {독립:3, 독특:1} },
+      { label: "🎯 열심히 노력하고 성장하는 것", scores: {활발:2, 창의:2} }
+    ]
+  },
+  {
+    text: "친구들이 나를 어떻게 표현할까?",
+    options: [
+      { label: "\"너무 귀엽고 사랑스러워서 계속 보고 싶어\"", scores: {다정:2, 포근:2} },
+      { label: "\"항상 밝고 에너지 넘쳐서 같이 있으면 신나\"", scores: {밝음:3, 활발:1} },
+      { label: "\"쿨하고 독특한 매력이 있어서 신기해\"", scores: {독립:2, 독특:2} },
+      { label: "\"조용하지만 옆에 있으면 왠지 편안해\"", scores: {차분:3, 포근:1} }
+    ]
+  },
+  {
+    text: "만약 내가 산리오 마을에 산다면?",
+    options: [
+      { label: "🌸 꽃밭에 둘러싸인 예쁜 집에서 친구들 초대하기", scores: {다정:3, 창의:1} },
+      { label: "☁️ 구름 위 아늑한 집에서 낮잠 자기", scores: {포근:3, 차분:1} },
+      { label: "🌟 반짝이는 별이 보이는 높은 탑에서 살기", scores: {독특:2, 창의:2} },
+      { label: "🖤 숲속 아지트에서 혼자만의 시간 즐기기", scores: {독립:3, 차분:1} }
+    ]
+  }
+];
+
+// ── 산리오 캐릭터 데이터 ──
+const CHARACTERS = [
+  {
+    name: "헬로키티",
+    en: "Hello Kitty",
+    emoji: "🎀",
+    color: "#ffb3ce",
+    subtitle: "\"세상 모든 것을 사랑하는 영원한 아이콘\"",
+    desc: "누구에게나 친절하고 따뜻한 마음을 가진 타입이에요. 리본과 사랑스러움의 대명사! 언제나 밝고 긍정적인 에너지로 주변 사람들을 행복하게 만들어요. 우정과 사랑을 가장 소중하게 여겨요.",
+    traits: ["사랑스러운", "친절한", "긍정적", "우정 최고"],
+    image: "./images/hello-kitty.png",
+    primary: "다정", secondary: "밝음"
+  },
+  {
+    name: "폼폼푸린",
+    en: "Pompompurin",
+    emoji: "🍮",
+    color: "#ffe082",
+    subtitle: "\"먹고 자고 뒹굴뒹굴이 제일 행복해\"",
+    desc: "느긋하고 여유로운 성격의 소유자. 맛있는 걸 먹고 편하게 쉬는 것이 최고의 행복이에요. 겉은 늘 느긋해 보여도 친구들을 깊이 아끼고, 곁에 있으면 왠지 마음이 편안해지는 존재예요.",
+    traits: ["느긋한", "포근한", "식욕 왕성", "든든한"],
+    image: "./images/pompompurin.png",
+    primary: "포근", secondary: "차분"
+  },
+  {
+    name: "마이멜로디",
+    en: "My Melody",
+    emoji: "🌸",
+    color: "#ffb3ce",
+    subtitle: "\"순수하고 사랑스러운 숲속의 천사\"",
+    desc: "세상에서 가장 순수하고 사랑스러운 마음을 가진 타입. 모두를 사랑하고 언제나 행복하게 해주고 싶어해요. 음악과 쿠키를 좋아하고, 엄마에 대한 사랑이 깊은 따뜻한 캐릭터예요.",
+    traits: ["순수한", "따뜻한", "사랑스러운", "엄마 사랑"],
+    image: "./images/my-melody.png",
+    primary: "다정", secondary: "포근"
+  },
+  {
+    name: "시나모롤",
+    en: "Cinnamoroll",
+    emoji: "☁️",
+    color: "#c5e0f5",
+    subtitle: "\"구름처럼 포근하고 하늘처럼 맑은 존재\"",
+    desc: "하늘에서 내려온 것 같은 순수하고 몽환적인 분위기. 귀를 이용해 하늘을 나는 것을 좋아하고 달콤한 시나몬 롤을 사랑해요. 조용하지만 옆에 있으면 왠지 기분이 좋아지는 포근한 존재예요.",
+    traits: ["몽글몽글", "순수한", "포근한", "하늘 친구"],
+    image: "./images/cinnamoroll.png",
+    primary: "포근", secondary: "다정"
+  },
+  {
+    name: "쿠로미",
+    en: "Kuromi",
+    emoji: "🖤",
+    color: "#c9a8e8",
+    subtitle: "\"반항적인 겉모습 뒤에 숨겨진 순수함\"",
+    desc: "겉은 쿨하고 반항적으로 보여도 속에는 누구보다 섬세하고 순수한 마음이 있어요. 로맨틱한 것을 좋아하고 일기 쓰는 걸 즐기는 감성파. 마이멜로디와 라이벌이지만 사실 깊은 우정이 있어요.",
+    traits: ["반항적인 외면", "순수한 내면", "감성적", "로맨티스트"],
+    image: "./images/kuromi.png",
+    primary: "독립", secondary: "독특"
+  },
+  {
+    name: "포차코",
+    en: "Pochacco",
+    emoji: "🐶",
+    color: "#a8ddd8",
+    subtitle: "\"활발하고 스포티한 에너지 덩어리\"",
+    desc: "운동을 좋아하고 활발한 에너지가 넘치는 타입. 친구들과 어울리는 걸 좋아하고 항상 밝고 긍정적이에요. 강아지처럼 충직하고 솔직한 성격으로 누구에게나 사랑받는 캐릭터예요.",
+    traits: ["활발한", "스포티한", "밝은", "충직한"],
+    image: "./images/pochacco.png",
+    primary: "활발", secondary: "밝음"
+  },
+  {
+    name: "배드바츠마루",
+    en: "Badtz-Maru",
+    emoji: "🐧",
+    color: "#c9a8e8",
+    subtitle: "\"세상 제일 쿨한 반항아 펭귄\"",
+    desc: "겉으로는 반항적이고 삐딱한 척하지만 사실은 인기쟁이가 꿈인 귀여운 반항아. 독립적이고 자기 스타일이 확고해서 남들 시선에 휘둘리지 않아요. 의외로 부모님을 좋아하는 효자랍니다.",
+    traits: ["쿨한 척", "개성 강한", "독립적", "의외의 효자"],
+    image: "./images/badtz-maru.png",
+    primary: "독립", secondary: "독특"
+  },
+  {
+    name: "트윈스타",
+    en: "Little Twin Stars",
+    emoji: "🌟",
+    color: "#ffe082",
+    subtitle: "\"별에서 온 반짝반짝 쌍둥이 스타\"",
+    desc: "하늘에서 내려온 쌍둥이 별처럼 반짝이는 존재감. 꿈과 상상력이 풍부하고 창의적인 아이디어가 넘쳐요. 누구와도 잘 어울리고 세상을 아름답고 긍정적으로 바라보는 낙천주의자예요.",
+    traits: ["반짝이는", "창의적", "낙천주의", "꿈 많은"],
+    image: "./images/little-twin-stars.png",
+    primary: "창의", secondary: "밝음"
+  },
+  {
+    name: "코기뮹",
+    en: "Cogimyun",
+    emoji: "🍄",
+    color: "#a8ddd8",
+    subtitle: "\"조용하지만 단단한 나만의 세계\"",
+    desc: "말은 많지 않지만 자신만의 확고한 세계가 있는 타입. 버섯 위에 앉아 혼자만의 시간을 즐기는 것처럼, 혼자서도 충분히 행복할 수 있어요. 조용하지만 한번 친해지면 엄청 다정한 면이 있어요.",
+    traits: ["조용한", "독립적", "나만의 세계", "은근 다정"],
+    image: "./images/cogimyun.png",
+    primary: "차분", secondary: "독립"
+  },
+  {
+    name: "한교동",
+    en: "Hangyodon",
+    emoji: "🐟",
+    color: "#a8c8f0",
+    subtitle: "\"물고기인지 뭔지 모르는 독특한 매력\"",
+    desc: "독특하고 개성 넘치는 캐릭터. 자신이 뭔지 잘 모르는 것처럼 틀에 박히는 걸 싫어하고 자유롭게 살아가요. 엉뚱하고 예측 불가능한 면이 있지만 그게 바로 매력 포인트예요.",
+    traits: ["독특한", "자유로운", "엉뚱한", "예측 불가"],
+    image: "./images/hangyodon.png",
+    primary: "독특", secondary: "창의"
+  },
+  {
+    name: "헬로미미",
+    en: "Hello Mimmy",
+    emoji: "🌷",
+    color: "#ffe4ef",
+    subtitle: "\"노란 리본의 수줍고 사랑스러운 키티의 쌍둥이\"",
+    desc: "헬로키티의 쌍둥이 동생으로 노란 리본이 트레이드마크. 수줍음이 많고 조용하지만 마음이 따뜻해요. 가까운 사람에게는 누구보다 다정하고 섬세하게 챙겨주는 소중한 존재예요.",
+    traits: ["수줍은", "섬세한", "조용한", "따뜻한"],
+    image: "./images/hello-mimmy.png",
+    primary: "다정", secondary: "차분"
+  },
+  {
+    name: "디어다니엘",
+    en: "Dear Daniel",
+    emoji: "🎵",
+    color: "#a8c8f0",
+    subtitle: "\"키티의 영원한 단짝, 감성 넘치는 댄서\"",
+    desc: "춤과 음악을 사랑하는 감성적이고 자유로운 영혼. 헬로키티의 소울메이트로 언제나 따뜻하고 배려심이 깊어요. 세계 여행을 꿈꾸는 모험가 기질도 가지고 있어요.",
+    traits: ["감성적", "자유로운", "배려심 깊은", "모험가"],
+    image: "./images/dear-daniel.png",
+    primary: "밝음", secondary: "창의"
+  },
+  {
+    name: "챠미키티",
+    en: "Charmmy Kitty",
+    emoji: "💎",
+    color: "#f5d0f0",
+    subtitle: "\"키티가 키우는 우아하고 도도한 고양이\"",
+    desc: "헬로키티의 반려묘로 우아하고 도도한 매력을 가진 타입. 고급스러운 것을 좋아하고 자신만의 스타일을 확고하게 지켜요. 겉은 차갑지만 진짜 마음을 허락한 사람에게는 깊은 애정을 줘요.",
+    traits: ["우아한", "도도한", "스타일리시", "고급 취향"],
+    image: "./images/charmmy-kitty.png",
+    primary: "독립", secondary: "독특"
+  },
+  {
+    name: "구데타마",
+    en: "Gudetama",
+    emoji: "🥚",
+    color: "#ffe082",
+    subtitle: "\"귀차니즘의 철학자, 달걀 노른자의 현자\"",
+    desc: "모든 것이 귀찮고 그냥 가만히 있고 싶은 느긋함의 대가. 하지만 그 무기력함 뒤에는 세상을 냉철하게 바라보는 철학이 숨어있어요. 억지로 움직이기보단 자연스러운 흐름을 따르는 타입이에요.",
+    traits: ["귀차니즘", "느긋한", "철학적", "자연스러운"],
+    image: "./images/gudetama.png",
+    primary: "차분", secondary: "포근"
+  },
+  {
+    name: "마이스윗피아노",
+    en: "My Sweet Piano",
+    emoji: "🎹",
+    color: "#ffd6e7",
+    subtitle: "\"마이멜로디의 단짝, 수줍고 순수한 양\"",
+    desc: "마이멜로디의 베스트 프렌드인 귀여운 양. 수줍음이 많고 조용하지만 마음이 누구보다 따뜻해요. 음악을 사랑하고 감수성이 풍부해서 작은 것에도 감동받는 섬세한 감성의 소유자예요.",
+    traits: ["수줍은", "감수성 풍부", "순수한", "음악 사랑"],
+    image: "./images/my-sweet-piano.png",
+    primary: "포근", secondary: "다정"
+  },
+  {
+    name: "모카",
+    en: "Mocha",
+    emoji: "🐻",
+    color: "#d4a574",
+    subtitle: "\"커피향처럼 따뜻하고 포근한 곰\"",
+    desc: "커피를 좋아하는 따뜻하고 여유로운 성격의 곰. 카페 분위기처럼 편안하고 아늑한 분위기를 만들어내는 재주가 있어요. 느긋하지만 친구들을 세심하게 챙기는 따뜻한 마음을 가졌어요.",
+    traits: ["포근한", "여유로운", "카페 감성", "세심한"],
+    image: "./images/mocha.png",
+    primary: "포근", secondary: "차분"
+  },
+  {
+    name: "타이니참",
+    en: "Tiny Chum",
+    emoji: "🌈",
+    color: "#b8f0e0",
+    subtitle: "\"작지만 무한한 에너지를 가진 꼬마 친구\"",
+    desc: "작은 몸에 넘치는 에너지와 호기심을 가진 타입. 새로운 것에 대한 설렘이 항상 넘치고 어디서든 밝은 존재감을 발휘해요. 친구를 잘 사귀고 주변을 밝게 만드는 태양 같은 캐릭터예요.",
+    traits: ["에너지 넘치는", "호기심 왕성", "밝은", "친화력 최고"],
+    image: "./images/tiny-chum.png",
+    primary: "활발", secondary: "창의"
+  }
+];
+
+// ── 상태 ──
+let current = 0;
+let scores = { 다정:0, 포근:0, 차분:0, 밝음:0, 활발:0, 독립:0, 독특:0, 창의:0 };
+
+function startQuiz() {
+  document.getElementById('screen-intro').style.display = 'none';
+  document.getElementById('screen-quiz').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  const pct = Math.round((current / QUESTIONS.length) * 100);
+
+  document.getElementById('prog-text').textContent = `${current + 1} / ${QUESTIONS.length}`;
+  document.getElementById('prog-pct').textContent = `${pct}%`;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('q-num').textContent = `Q ${String(current+1).padStart(2,'0')}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  const optWrap = document.getElementById('options');
+  optWrap.innerHTML = q.options.map((o, i) =>
+    `<button class="opt-btn" onclick="answer(${i})"><span>${o.label}</span></button>`
+  ).join('');
+
+  const card = document.querySelector('.question-card');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = 'fadeUp 0.4s ease both'; });
+}
+
+function answer(idx) {
+  const q = QUESTIONS[current];
+  const chosen = q.options[idx];
+  Object.entries(chosen.scores).forEach(([k, v]) => { scores[k] = (scores[k] || 0) + v; });
+
+  document.querySelectorAll('.opt-btn')[idx].classList.add('selected');
+
+  setTimeout(() => {
+    current++;
+    if (current < QUESTIONS.length) renderQuestion();
+    else showResult();
+  }, 350);
+}
+
+function showResult() {
+  document.getElementById('screen-quiz').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'block';
+
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const top1 = sorted[0][0];
+  const top2 = sorted[1][0];
+
+  let best = CHARACTERS.find(c => c.primary === top1 && c.secondary === top2)
+          || CHARACTERS.find(c => c.primary === top1)
+          || CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
+
+  // 아바타: 이미지 or 이모지
+  const avatarEl = document.getElementById('res-avatar');
+  const img = new Image();
+  img.onload = function() {
+    avatarEl.innerHTML = `<img src="${best.image}" alt="${best.name}">`;
+  };
+  img.onerror = function() {
+    avatarEl.innerHTML = `<span style="font-size:80px">${best.emoji}</span>`;
+  };
+  img.src = best.image;
+  avatarEl.style.borderColor = best.color;
+  avatarEl.style.boxShadow = `0 0 0 3px ${best.color}, 0 8px 32px rgba(0,0,0,0.1)`;
+
+  document.getElementById('res-tag').textContent = '산리오';
+  document.getElementById('res-tag').style.background = best.color + '55';
+  document.getElementById('res-tag').style.color = '#3d2035';
+  document.getElementById('res-name').textContent = best.name;
+  document.getElementById('res-en').textContent = best.en;
+  document.getElementById('res-subtitle').textContent = best.subtitle;
+  document.getElementById('res-desc').textContent = best.desc;
+  document.getElementById('res-traits').innerHTML = best.traits.map(t => `<span class="trait">${t}</span>`).join('');
+
+  window._result = best;
+}
+
+function shareKakao() {
+  const r = window._result;
+  if (window.Kakao && window.Kakao.isInitialized && window.Kakao.isInitialized()) {
+    Kakao.Share.sendDefault({
+      objectType: 'text',
+      text: `🎀 나와 닮은 산리오 캐릭터는?\n\n${r.emoji} ${r.name} (${r.en})\n${r.subtitle}\n\n나도 해봐!`,
+      link: { mobileWebUrl: window.location.href, webUrl: window.location.href }
+    });
+  } else {
+    copyLink();
+    showToast('카카오 SDK 설정이 필요해요. 링크를 복사했어요! 🔗');
+  }
+}
+
+function copyLink() {
+  const r = window._result;
+  const text = `🎀 나랑 닮은 산리오 캐릭터는 ${r.name}!\n${window.location.href}`;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('링크 복사됐어요! 친구에게 공유해봐요 🌸'))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const el = document.createElement('textarea');
+  el.value = text;
+  el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(el);
+  el.focus(); el.select();
+  try {
+    document.execCommand('copy');
+    showToast('링크 복사됐어요! 친구에게 공유해봐요 🌸');
+  } catch(e) {
+    showToast('직접 URL을 복사해주세요 ㅠㅠ');
+  }
+  document.body.removeChild(el);
+}
+
+function retry() {
+  current = 0;
+  scores = { 다정:0, 포근:0, 차분:0, 밝음:0, 활발:0, 독립:0, 독특:0, 창의:0 };
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-intro').style.display = 'flex';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
