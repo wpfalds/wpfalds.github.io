@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ 나에게 어울리는 캐릭터는?</title>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1040;
+  --bg2: #241758;
+  --star: #ffe066;
+  --magic: #b48fff;
+  --magic2: #7ee8fa;
+  --pink: #ff8fab;
+  --green: #80ffb4;
+  --text: #f5f0ff;
+  --muted: #a090c8;
+  --card: rgba(255,255,255,0.06);
+  --border: rgba(180,143,255,0.25);
+  --shadow: rgba(100,60,255,0.25);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 별 배경 */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(180,143,255,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(126,232,250,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 30% 30% at 90% 60%, rgba(255,143,171,0.1) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+.stars {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  animation: twinkle var(--d, 3s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  opacity: 0;
+}
+@keyframes twinkle {
+  0%,100% { opacity:0; transform: scale(0.5); }
+  50% { opacity: var(--op, 0.8); transform: scale(1); }
+}
+
+.wrap {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  position: relative; z-index: 1;
+}
+
+/* ── 인트로 ── */
+#screen-intro {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100vh; text-align: center;
+  animation: fadeUp 0.8s ease both;
+}
+
+.intro-magic {
+  font-size: 64px; margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.intro-title {
+  font-family: 'Gaegu', cursive;
+  font-size: clamp(28px, 7vw, 46px);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--magic), var(--magic2), var(--star));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.intro-sub {
+  font-size: 14px; color: var(--muted);
+  line-height: 1.8; margin-bottom: 40px;
+  font-weight: 300;
+}
+
+.btn-start {
+  background: linear-gradient(135deg, #7c3aed, #a855f7, #ec4899);
+  color: #fff; border: none;
+  border-radius: 100px;
+  padding: 18px 56px;
+  font-family: 'Gaegu', cursive;
+  font-size: 20px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 40px rgba(124,58,237,0.5);
+  transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.05em;
+}
+.btn-start:hover { transform: translateY(-3px); box-shadow: 0 16px 50px rgba(124,58,237,0.6); }
+
+.intro-note {
+  margin-top: 20px; font-size: 12px;
+  color: var(--muted); letter-spacing: 0.08em;
+}
+
+.char-preview {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 32px;
+  max-width: 360px;
+}
+.char-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px; color: var(--muted);
+  animation: fadeUp 0.5s ease both;
+}
+
+/* ── 문항 ── */
+#screen-quiz { display: none; padding-top: 48px; }
+
+.progress-wrap { margin-bottom: 28px; }
+.progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted); margin-bottom: 8px;
+}
+.progress-bar {
+  height: 5px; background: rgba(255,255,255,0.1);
+  border-radius: 100px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--magic), var(--magic2));
+  border-radius: 100px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 8px var(--magic);
+}
+
+.question-card {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 28px 32px;
+  box-shadow: 0 8px 48px var(--shadow);
+  animation: fadeUp 0.45s ease both;
+}
+
+.q-num {
+  font-family: 'Gaegu', cursive;
+  font-size: 13px; color: var(--magic);
+  margin-bottom: 14px; letter-spacing: 0.1em;
+}
+.q-text {
+  font-size: 17px; font-weight: 500;
+  line-height: 1.65; margin-bottom: 28px;
+  color: var(--text);
+}
+
+.options { display: flex; flex-direction: column; gap: 11px; }
+
+.opt-btn {
+  background: rgba(255,255,255,0.92);
+  border: 1.5px solid rgba(180,143,255,0.3);
+  border-radius: 14px;
+  padding: 15px 20px;
+  text-align: left;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; color: #1a1040;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1.5;
+  position: relative; overflow: hidden;
+}
+.opt-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+  opacity: 0; transition: opacity 0.2s;
+}
+.opt-btn span { position: relative; z-index: 1; color: #1a1040; }
+.opt-btn:hover { border-color: var(--magic); transform: translateX(4px); background: rgba(255,255,255,1); }
+.opt-btn.selected { border-color: var(--magic); }
+.opt-btn.selected::before { opacity: 1; }
+.opt-btn.selected span { color: #1a1040; font-weight: 700; }
+
+/* ── 결과 ── */
+#screen-result { display: none; padding-top: 40px; }
+
+.result-img-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 4px;
+}
+.char-avatar {
+  width: 160px; height: 160px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.3));
+  border: 3px solid rgba(180,143,255,0.5);
+  box-shadow: 0 0 40px rgba(124,58,237,0.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 72px;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+.char-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 17px;
+}
+.char-avatar .emoji-fallback {
+  font-size: 72px;
+}
+.char-avatar::before {
+  content: '';
+  position: absolute; inset: -4px;
+  border-radius: 24px;
+  background: conic-gradient(from 0deg, #7c3aed, #a855f7, #ec4899, #7ee8fa, #7c3aed);
+  z-index: -1;
+  animation: spin 4s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.result-emoji { font-size: 72px; margin-bottom: 12px; animation: float 3s ease-in-out infinite; }
+.result-card {
+  background: var(--card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 44px 28px 36px;
+  box-shadow: 0 12px 60px var(--shadow);
+  text-align: center;
+  animation: fadeUp 0.7s ease both;
+  margin-bottom: 16px;
+}
+
+.result-from {
+  font-size: 12px; color: var(--muted);
+  letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.result-name {
+  font-family: 'Gaegu', cursive;
+  font-size: 40px; font-weight: 700;
+  background: linear-gradient(135deg, var(--magic), var(--magic2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+.result-subtitle {
+  font-size: 15px; font-weight: 700;
+  color: var(--star); margin-bottom: 22px;
+}
+.result-desc {
+  font-size: 14px; color: #ccc;
+  line-height: 1.9; text-align: left;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.traits {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin-bottom: 28px;
+}
+.trait {
+  background: rgba(180,143,255,0.15);
+  border: 1px solid rgba(180,143,255,0.3);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 12px; color: var(--magic);
+  font-weight: 500;
+}
+
+.result-btns { display: flex; flex-direction: column; gap: 10px; }
+
+.btn-kakao {
+  background: #FEE500; color: #3C1E1E;
+  border: none; border-radius: 14px;
+  padding: 16px; font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.btn-kakao:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-copy {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 15px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-copy:hover { border-color: var(--magic2); color: var(--magic2); }
+
+.btn-retry {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 15px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-retry:hover { border-color: var(--pink); color: var(--pink); }
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(22px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.toast {
+  position: fixed; bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(30,15,60,0.95);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 100px;
+  padding: 12px 24px; font-size: 13px;
+  opacity: 0; transition: all 0.3s;
+  pointer-events: none; z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- 별 파티클 -->
+<div class="stars" id="stars"></div>
+
+<div class="wrap">
+
+<!-- 인트로 -->
+<div id="screen-intro">
+  <div class="intro-magic">🔮</div>
+  <h1 class="intro-title">나에게 어울리는<br>캐릭터는 누구?</h1>
+  <p class="intro-sub">디즈니, 지브리, 만화 속 28가지 캐릭터 중<br>나와 가장 닮은 캐릭터를 찾아드려요</p>
+  <div class="char-preview">
+    <span class="char-chip">🏰 디즈니</span>
+    <span class="char-chip">🌿 지브리</span>
+    <span class="char-chip">💥 만화/애니</span>
+    <span class="char-chip">🦸 히어로</span>
+    <span class="char-chip">✨ 28가지</span>
+  </div>
+  <button class="btn-start" onclick="startQuiz()">✨ 나의 캐릭터 찾기</button>
+  <p class="intro-note">12문항 · 약 2분</p>
+</div>
+
+<!-- 문항 -->
+<div id="screen-quiz">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="prog-text">1 / 12</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="question-card">
+    <div class="q-num" id="q-num">Q1</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div id="screen-result">
+  <div class="result-card">
+    <div class="result-img-wrap" id="res-img-wrap">
+      <div class="char-avatar" id="res-char-avatar"></div>
+    </div>
+    <div class="result-from" id="res-from"></div>
+    <div class="result-name" id="res-name"></div>
+    <div class="result-subtitle" id="res-subtitle"></div>
+    <div class="result-desc" id="res-desc"></div>
+    <div class="traits" id="res-traits"></div>
+    <div class="result-btns">
+      <button class="btn-kakao" onclick="shareKakao()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2C5.58 2 2 4.91 2 8.5c0 2.28 1.38 4.28 3.46 5.5L4.5 17.5l3.9-2.14c.52.08 1.06.14 1.6.14 4.42 0 8-2.91 8-6.5S14.42 2 10 2z" fill="#3C1E1E"/></svg>
+        카카오톡으로 공유
+      </button>
+      <button class="btn-copy" onclick="copyLink()">🔗 링크 복사</button>
+      <button class="btn-retry" onclick="retry()">🔄 다시 하기</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+<script>
+// ── 별 생성 ──
+(function() {
+  const wrap = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;
+      --delay:${Math.random()*5}s;
+      --op:${0.4+Math.random()*0.6};
+    `;
+    wrap.appendChild(s);
+  }
+})();
+
+// ── 문항 ──
+const QUESTIONS = [
+  {
+    text: "친구들 사이에서 나는 주로?",
+    options: [
+      { label: "분위기를 주도하고 모두를 웃게 만드는 편", scores: {용기:2, 밝음:2} },
+      { label: "조용히 뒤에서 챙겨주는 든든한 존재", scores: {따뜻함:2, 신중:2} },
+      { label: "엉뚱한 아이디어로 예상치 못한 방향을 제시", scores: {창의:2, 자유:2} },
+      { label: "진지하게 고민하고 해결책을 찾아주는 편", scores: {지혜:2, 신중:2} }
+    ]
+  },
+  {
+    text: "힘든 상황이 닥쳤을 때 나는?",
+    options: [
+      { label: "무조건 부딪혀본다. 일단 해보는 거야!", scores: {용기:3, 열정:1} },
+      { label: "주변 사람들과 함께 헤쳐나갈 방법을 찾는다", scores: {따뜻함:2, 신의:2} },
+      { label: "혼자 조용히 생각하며 최선의 방법을 찾는다", scores: {신중:2, 지혜:2} },
+      { label: "유머로 분위기를 풀고 긍정적으로 바라본다", scores: {밝음:2, 자유:2} }
+    ]
+  },
+  {
+    text: "이상적인 하루를 보낸다면?",
+    options: [
+      { label: "새로운 곳을 탐험하고 모험을 즐긴다", scores: {자유:2, 용기:2} },
+      { label: "가까운 사람들과 따뜻한 시간을 보낸다", scores: {따뜻함:3, 신의:1} },
+      { label: "책을 읽거나 새로운 걸 배우며 혼자만의 시간", scores: {지혜:2, 신중:2} },
+      { label: "자연 속에서 조용히 쉬거나 예술적인 걸 만든다", scores: {감성:3, 자유:1} }
+    ]
+  },
+  {
+    text: "나의 가장 큰 강점은?",
+    options: [
+      { label: "어떤 상황에서도 포기하지 않는 의지력", scores: {용기:3, 열정:1} },
+      { label: "상대의 마음을 잘 읽고 공감하는 능력", scores: {따뜻함:2, 감성:2} },
+      { label: "번뜩이는 아이디어와 창의적인 사고", scores: {창의:3, 자유:1} },
+      { label: "냉정하게 상황을 분석하고 판단하는 능력", scores: {지혜:3, 신중:1} }
+    ]
+  },
+  {
+    text: "나를 가장 화나게 하는 것은?",
+    options: [
+      { label: "불공평한 일이 일어날 때", scores: {용기:2, 신의:2} },
+      { label: "소중한 사람이 상처받을 때", scores: {따뜻함:3, 신의:1} },
+      { label: "자유를 억압당하거나 규칙에 갇힐 때", scores: {자유:3, 열정:1} },
+      { label: "노력이 인정받지 못할 때", scores: {열정:2, 신중:2} }
+    ]
+  },
+  {
+    text: "꿈꾸는 나의 모습은?",
+    options: [
+      { label: "세상을 구하거나 큰 변화를 만드는 영웅", scores: {용기:3, 열정:1} },
+      { label: "모두가 행복하게 살 수 있는 세상을 만드는 사람", scores: {따뜻함:2, 지혜:2} },
+      { label: "자유롭게 세계를 누비며 나만의 길을 걷는 사람", scores: {자유:3, 창의:1} },
+      { label: "깊은 지식과 지혜로 주변을 이끄는 사람", scores: {지혜:3, 신중:1} }
+    ]
+  },
+  {
+    text: "나의 단점을 하나 고른다면?",
+    options: [
+      { label: "너무 충동적이고 생각보다 행동이 앞선다", scores: {용기:2, 열정:2} },
+      { label: "남의 눈치를 너무 많이 본다", scores: {따뜻함:2, 신중:2} },
+      { label: "한번 꽂히면 집착하는 편이다", scores: {열정:2, 창의:2} },
+      { label: "혼자만의 세계에 빠져 소통이 부족할 때가 있다", scores: {지혜:1, 감성:3} }
+    ]
+  },
+  {
+    text: "갑자기 마법 능력이 생긴다면?",
+    options: [
+      { label: "무한한 힘! 어떤 적도 무찌를 수 있는 파워", scores: {용기:3, 열정:1} },
+      { label: "치유 마법 - 아픈 사람을 모두 낫게 해주고 싶어", scores: {따뜻함:3, 감성:1} },
+      { label: "시간 이동! 과거와 미래를 자유롭게 오가고 싶어", scores: {지혜:2, 자유:2} },
+      { label: "무엇이든 만들어내는 창조 마법", scores: {창의:3, 자유:1} }
+    ]
+  },
+  {
+    text: "낯선 사람을 처음 만났을 때 나는?",
+    options: [
+      { label: "먼저 말 걸고 금방 친해지는 편", scores: {밝음:3, 열정:1} },
+      { label: "천천히 지켜보다가 신뢰가 생기면 마음을 연다", scores: {신중:2, 신의:2} },
+      { label: "상대가 어떤 사람인지 관찰하고 파악하려 한다", scores: {지혜:2, 신중:2} },
+      { label: "상대방의 감정과 분위기를 먼저 읽는다", scores: {감성:3, 따뜻함:1} }
+    ]
+  },
+  {
+    text: "나에게 가장 소중한 것은?",
+    options: [
+      { label: "자유 - 내 방식대로 살 수 있는 것", scores: {자유:3, 창의:1} },
+      { label: "관계 - 사랑하는 사람들과의 연결", scores: {따뜻함:2, 신의:2} },
+      { label: "성장 - 매일 더 나은 사람이 되는 것", scores: {열정:2, 지혜:2} },
+      { label: "진실 - 솔직하고 진심인 삶", scores: {신의:2, 신중:2} }
+    ]
+  },
+  {
+    text: "모험을 떠난다면 나의 역할은?",
+    options: [
+      { label: "무서워도 제일 앞에 서는 리더", scores: {용기:3, 열정:1} },
+      { label: "팀원들을 챙기고 분위기를 이끄는 서포터", scores: {따뜻함:2, 밝음:2} },
+      { label: "지도와 전략을 짜는 두뇌파", scores: {지혜:3, 신중:1} },
+      { label: "예상치 못한 방법으로 위기를 돌파하는 와일드카드", scores: {창의:2, 자유:2} }
+    ]
+  },
+  {
+    text: "나를 한 마디로 표현한다면?",
+    options: [
+      { label: "뜨겁고 열정적인 사람", scores: {열정:3, 용기:1} },
+      { label: "따뜻하고 다정한 사람", scores: {따뜻함:3, 감성:1} },
+      { label: "자유롭고 독창적인 사람", scores: {자유:2, 창의:2} },
+      { label: "깊고 신중한 사람", scores: {지혜:2, 신의:2} }
+    ]
+  }
+];
+
+// ── 28가지 캐릭터 결과 ──
+const CHARACTERS = [
+  // 용기 TOP
+  { name: "무파사", from: "🦁 라이온 킹 (디즈니)", emoji: "🦁", subtitle: "위엄 있는 왕의 기운이 느껴져요", desc: "자연의 이치를 이해하고 모두를 이끄는 든든한 존재. 책임감이 강하고 진심 어린 조언으로 주변을 감동시켜요. 두려운 상황에도 흔들리지 않는 강인함을 가졌어요.", traits: ["카리스마", "책임감", "위엄", "든든함"], image: "https://upload.wikimedia.org/wikipedia/en/0/04/Mufasa_%28The_Lion_King%29.png", primary: "용기", secondary: "신의" },
+  { name: "모아나", from: "🌊 모아나 (디즈니)", emoji: "🌊", subtitle: "바다가 선택한 용감한 탐험가", desc: "두려움보다 호기심이 앞서는 타입. 모두가 말려도 자신의 길을 가는 용기를 가졌어요. 자유롭고 열정적이며 사람들을 위해 기꺼이 위험을 감수해요.", traits: ["용감한", "자유로운", "열정적", "탐험가"], image: "https://upload.wikimedia.org/wikipedia/en/9/93/Moana_%28Disney_character%29.png", primary: "용기", secondary: "자유" },
+  { name: "뮬란", from: "⚔️ 뮬란 (디즈니)", emoji: "⚔️", subtitle: "편견을 깨는 진짜 용사", desc: "약해 보여도 속에는 강철 같은 의지가 있어요. 스스로를 증명하기 위해 끝까지 포기하지 않고, 사랑하는 사람을 지키기 위해 무엇이든 할 수 있는 사람이에요.", traits: ["불굴의 의지", "헌신적", "용감한", "독립적"], image: "https://upload.wikimedia.org/wikipedia/en/0/0c/Mulan_%28Disney_character%29.png", primary: "용기", secondary: "따뜻함" },
+
+  // 따뜻함 TOP
+  { name: "토토로", from: "🌿 이웃집 토토로 (지브리)", emoji: "🌿", subtitle: "숲의 정령처럼 포근한 존재", desc: "말이 많지 않아도 곁에 있으면 마음이 편안해지는 타입. 자연과 하나가 되고 순수한 마음을 가진 사람. 조용하지만 필요할 때 가장 든든하게 나타나요.", traits: ["포근한", "순수한", "자연친화", "든든한"], image: "https://upload.wikimedia.org/wikipedia/en/0/02/My_Neighbor_Totoro_-_Totoro_and_Catbus.jpg", primary: "따뜻함", secondary: "감성" },
+  { name: "소피", from: "🏰 하울의 움직이는 성 (지브리)", emoji: "🧶", subtitle: "평범하지만 누구보다 강한 마음", desc: "겉은 수수해 보여도 속에는 따뜻하고 강인한 마음이 있어요. 사랑하는 사람을 위해 조용히 헌신하고, 어떤 상황에서도 자신다움을 잃지 않아요.", traits: ["강인한 내면", "헌신적", "현실적", "진심"], image: "https://upload.wikimedia.org/wikipedia/en/b/b3/Howl%27s_Moving_Castle.jpg", primary: "따뜻함", secondary: "신중" },
+  { name: "나우시카", from: "🌾 바람계곡의 나우시카 (지브리)", emoji: "🌾", subtitle: "생명을 사랑하는 용감한 공주", desc: "모든 생명을 소중히 여기는 깊은 마음의 소유자. 강한 신념을 가지고 있으면서도 적에게도 손을 내밀 수 있는 넓은 품을 가졌어요.", traits: ["공감 능력자", "신념 있는", "용감한", "생명 존중"], image: "https://upload.wikimedia.org/wikipedia/en/8/8e/Nausicaa-of-the-Valley-of-the-Wind-poster.jpg", primary: "따뜻함", secondary: "용기" },
+  { name: "치히로", from: "🛁 센과 치히로 (지브리)", emoji: "🌀", subtitle: "성장하는 용감한 소녀", desc: "처음엔 겁쟁이 같아 보여도 중요한 순간엔 누구보다 강해지는 타입. 낯선 환경에서도 포기하지 않고 앞으로 나아가요. 사람들의 진심을 잘 알아봐요.", traits: ["성장형", "끈기 있는", "진심 파악", "적응력"], image: "https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png", primary: "따뜻함", secondary: "용기" },
+
+  // 지혜 TOP
+  { name: "헤르미온느", from: "⚡ 해리포터 (워너브라더스)", emoji: "📚", subtitle: "지식이 곧 힘이에요", desc: "철저한 준비와 방대한 지식으로 어떤 상황도 돌파해요. 규칙을 중요시하지만 진짜 중요한 것을 위해서라면 과감하게 행동할 줄도 알아요.", traits: ["박학다식", "논리적", "성실한", "강한 신념"], image: "https://upload.wikimedia.org/wikipedia/en/d/d3/Hermione_Granger_poster.jpg", primary: "지혜", secondary: "신의" },
+  { name: "요다", from: "⭐ 스타워즈 (루카스필름)", emoji: "🌌", subtitle: "깊은 통찰의 소유자", desc: "말은 적지만 한 마디 한 마디에 깊은 뜻이 담겨 있어요. 겉모습보다 내면의 힘이 훨씬 강하고, 주변 사람들에게 길을 보여주는 안내자 역할을 해요.", traits: ["깊은 지혜", "통찰력", "침착한", "정신적 지주"], image: "https://upload.wikimedia.org/wikipedia/en/9/9b/Yoda_Empire_Strikes_Back.png", primary: "지혜", secondary: "신중" },
+  { name: "엘사", from: "❄️ 겨울왕국 (디즈니)", emoji: "❄️", subtitle: "혼자서도 빛나는 존재", desc: "오해받기 쉬운 차가운 겉모습 뒤에 깊은 감성과 강인함이 있어요. 스스로와 화해하고 자신의 진짜 모습을 받아들이는 과정이 아름다운 사람이에요.", traits: ["독립적", "강인한", "감성 깊은", "자기성찰"], image: "https://upload.wikimedia.org/wikipedia/en/0/05/Elsa_from_Disney%27s_Frozen.png", primary: "지혜", secondary: "감성" },
+  { name: "아테나 (원더우먼)", from: "🦅 원더우먼 (DC)", emoji: "🦅", subtitle: "지혜와 용기를 함께 가진 전사", desc: "강함과 지혜를 동시에 가진 균형 잡힌 존재. 싸움보다 평화를 원하지만 필요하다면 누구보다 강하게 맞설 수 있어요. 정의에 대한 신념이 확고해요.", traits: ["지혜롭고 강한", "정의로운", "균형 있는", "리더십"], image: "https://upload.wikimedia.org/wikipedia/en/9/93/Wonder_Woman.jpg", primary: "지혜", secondary: "용기" },
+
+  // 자유 TOP
+  { name: "루피", from: "🏴‍☠️ 원피스 (만화)", emoji: "🏴‍☠️", subtitle: "해적왕을 꿈꾸는 자유의 화신", desc: "틀에 박힌 것을 싫어하고 자기 방식대로 살아가는 타입. 말보다 행동이 앞서고, 한번 친구라고 생각하면 목숨 걸고 지키는 의리파예요.", traits: ["자유분방", "의리파", "행동파", "꿈이 큰"], image: "https://upload.wikimedia.org/wikipedia/en/9/90/Monkey_D._Luffy.png", primary: "자유", secondary: "용기" },
+  { name: "알라딘", from: "🪔 알라딘 (디즈니)", emoji: "🪔", subtitle: "거리의 왕자, 진심은 금보다 빛나요", desc: "가진 건 없어도 마음만큼은 그 누구보다 부유한 사람. 재치와 순발력으로 위기를 극복하고 자유를 갈망해요. 사랑하는 사람을 위해 진심을 다해요.", traits: ["재치 있는", "낙관적", "진심 어린", "자유로운"], image: "https://upload.wikimedia.org/wikipedia/en/e/e1/Aladdin_%281992_film%29.png", primary: "자유", secondary: "밝음" },
+  { name: "포카혼타스", from: "🌺 포카혼타스 (디즈니)", emoji: "🌺", subtitle: "바람의 색을 볼 수 있는 사람", desc: "자연과 교감하고 자유로운 영혼을 가진 타입. 틀에 박힌 삶을 거부하고 자신의 직관을 따라 살아가요. 다름을 받아들이는 넓은 마음을 가졌어요.", traits: ["자유로운 영혼", "직관적", "자연 친화", "열린 마음"], image: "https://upload.wikimedia.org/wikipedia/en/9/9b/Pocahontas_%28Disney_character%29.png", primary: "자유", secondary: "감성" },
+
+  // 창의 TOP
+  { name: "하울", from: "🔮 하울의 움직이는 성 (지브리)", emoji: "🔮", subtitle: "신비롭고 매력적인 마법사", desc: "겉은 화려하고 신비롭지만 속에는 깊은 감성이 숨어있어요. 창의적이고 독창적이며, 아름다움을 사랑해요. 진심으로 사랑할 때 가장 강해지는 타입이에요.", traits: ["신비로운", "창의적", "감수성 풍부", "매력적"], image: "https://upload.wikimedia.org/wikipedia/en/b/b3/Howl%27s_Moving_Castle.jpg", primary: "창의", secondary: "감성" },
+  { name: "토이스토리 버즈", from: "🚀 토이스토리 (픽사)", emoji: "🚀", subtitle: "무한한 저 너머로!", desc: "새로운 세계에 대한 호기심과 열정이 넘치는 타입. 처음엔 자신을 과신하지만 배우고 성장하는 능력이 뛰어나요. 한번 믿은 친구는 끝까지 지켜요.", traits: ["탐구심", "열정적", "성장형", "충직한"], image: "https://upload.wikimedia.org/wikipedia/en/9/9b/Buzz_Lightyear.png", primary: "창의", secondary: "열정" },
+  { name: "제로 투 (다링 인 더 프랑크스)", from: "🌸 다링 인 더 프랑크스 (애니)", emoji: "🌸", subtitle: "강렬하고 독창적인 존재감", desc: "남들과 다른 개성과 독특한 매력을 가진 타입. 감정 표현이 직접적이고 자신만의 세계가 확고해요. 한번 마음을 주면 그것이 전부가 되는 강렬한 사람이에요.", traits: ["독창적", "강렬한", "직접적", "자기 세계 확고"], image: "https://upload.wikimedia.org/wikipedia/commons/a/a9/No_image_available.svg", primary: "창의", secondary: "감성" },
+
+  // 감성 TOP
+  { name: "코코 (미구엘)", from: "🎸 코코 (픽사)", emoji: "🎸", subtitle: "음악과 사랑으로 이어진 사람", desc: "예술과 감성이 넘치는 타입. 꿈을 향한 열정이 강하고 가족과 뿌리에 대한 사랑이 깊어요. 감동적인 순간을 만들어내는 재주가 있어요.", traits: ["감성적", "열정적", "가족 사랑", "예술적"], image: "https://upload.wikimedia.org/wikipedia/en/9/98/Coco_%282017_film%29_poster.jpg", primary: "감성", secondary: "열정" },
+  { name: "센(치히로)", from: "🌊 센과 치히로의 행방불명 (지브리)", emoji: "✨", subtitle: "감수성이 풍부한 순수한 영혼", desc: "세상의 아름다움을 남다르게 느끼는 예민하고 섬세한 감성의 소유자. 겉으로 드러내진 않지만 속에는 풍부한 감정이 흐르고 있어요.", traits: ["감수성 풍부", "섬세한", "순수한", "공감 능력자"], image: "https://upload.wikimedia.org/wikipedia/en/d/db/Spirited_Away_Japanese_poster.png", primary: "감성", secondary: "따뜻함" },
+  { name: "라푼젤", from: "🌟 라푼젤 (디즈니)", emoji: "🌟", subtitle: "꿈을 향해 달려가는 빛나는 소녀", desc: "호기심이 왕성하고 삶을 밝게 바라보는 에너지가 넘쳐요. 새로운 경험에 눈이 반짝이고, 예술적 감성으로 세상을 표현하는 것을 사랑해요.", traits: ["밝은 에너지", "호기심 왕성", "예술적", "낙관적"], image: "https://upload.wikimedia.org/wikipedia/en/0/0e/Rapunzel_%28Disney_character%29.png", primary: "감성", secondary: "밝음" },
+
+  // 신의 TOP
+  { name: "아라곤", from: "💍 반지의 제왕 (뉴라인시네마)", emoji: "💍", subtitle: "진정한 왕의 귀환", desc: "책임감과 신의가 넘치는 진정한 리더. 화려한 것보다 진실하고 묵묵히 의무를 다하는 타입이에요. 어려운 상황에서도 포기하지 않는 불굴의 의지를 가졌어요.", traits: ["책임감", "신의 있는", "진정한 리더", "의지 굳은"], image: "https://upload.wikimedia.org/wikipedia/en/8/87/Aragorn.jpg", primary: "신의", secondary: "용기" },
+  { name: "나루토", from: "🍥 나루토 (만화)", emoji: "🍥", subtitle: "절대 포기 안 해! 이것이 나의 닌도야", desc: "어떤 상황에서도 포기를 모르는 집념의 소유자. 처음엔 인정받지 못해도 꾸준히 성장하며 결국 모두의 마음을 얻어요. 의리와 믿음이 최우선인 사람이에요.", traits: ["절대 포기 없음", "의리", "성장형", "열정 폭발"], image: "https://upload.wikimedia.org/wikipedia/en/9/9d/NarutoPart2.jpg", primary: "신의", secondary: "열정" },
+  { name: "심바", from: "🦁 라이온 킹 (디즈니)", emoji: "🌅", subtitle: "과거를 딛고 일어선 용기", desc: "책임을 피하고 싶었지만 결국 자신의 운명을 받아들이는 성장형 타입. 진심 어린 우정과 사랑으로 모두를 이끌며, 실수를 통해 더 강해지는 사람이에요.", traits: ["성장형", "책임감", "우정 중시", "용기 있는"], image: "https://upload.wikimedia.org/wikipedia/en/3/3d/Simba_%28Lion_King%29.png", primary: "신의", secondary: "따뜻함" },
+
+  // 밝음 TOP
+  { name: "올라프", from: "⛄ 겨울왕국 (디즈니)", emoji: "⛄", subtitle: "따뜻한 포옹이 필요할 때 찾는 존재", desc: "순수하고 밝은 에너지로 주변을 행복하게 만드는 타입. 자신이 모르는 것도 긍정적으로 받아들이고, 유머와 사랑으로 어떤 분위기도 밝게 만들어요.", traits: ["순수한", "긍정 에너지", "유머러스", "사랑 넘치는"], image: "https://upload.wikimedia.org/wikipedia/en/a/ad/Olaf_from_Disney%27s_Frozen.png", primary: "밝음", secondary: "따뜻함" },
+  { name: "피카츄", from: "⚡ 포켓몬 (닌텐도)", emoji: "⚡", subtitle: "전기처럼 통하는 우리 사이", desc: "말보다 행동과 표정으로 감정을 전달하는 타입. 에너지가 넘치고 곁에 있으면 기분이 좋아지는 존재예요. 처음엔 낯가리지만 친해지면 완전 애교쟁이예요.", traits: ["에너지 넘치는", "애교 있는", "충직한", "밝은"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/International_Pok%C3%A9mon_logo.svg/300px-International_Pok%C3%A9mon_logo.svg.png", primary: "밝음", secondary: "신의" },
+  { name: "도리", from: "🐠 니모를 찾아서 (픽사)", emoji: "🐠", subtitle: "Just keep swimming!", desc: "잊어버리기 일쑤지만 항상 밝게 나아가는 긍정왕. 어떤 상황도 유쾌하게 받아들이고 처음 만난 사람도 금세 친구로 만드는 재주가 있어요. 순간에 충실한 삶을 살아요.", traits: ["긍정왕", "사교적", "순간 충실", "유쾌한"], image: "https://upload.wikimedia.org/wikipedia/en/2/25/Finding_Dory.png", primary: "밝음", secondary: "자유" }
+];
+
+// ── 상태 ──
+let current = 0;
+let scores = { 용기:0, 따뜻함:0, 지혜:0, 자유:0, 창의:0, 감성:0, 신의:0, 밝음:0, 열정:0, 신중:0 };
+
+function startQuiz() {
+  document.getElementById('screen-intro').style.display = 'none';
+  document.getElementById('screen-quiz').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  const pct = Math.round((current / QUESTIONS.length) * 100);
+
+  document.getElementById('prog-text').textContent = `${current + 1} / ${QUESTIONS.length}`;
+  document.getElementById('prog-pct').textContent = `${pct}%`;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('q-num').textContent = `Q${current + 1}`;
+  document.getElementById('q-text').textContent = q.text;
+
+  const optWrap = document.getElementById('options');
+  optWrap.innerHTML = q.options.map((o, i) =>
+    `<button class="opt-btn" onclick="answer(${i})"><span>${o.label}</span></button>`
+  ).join('');
+
+  const card = document.querySelector('.question-card');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = 'fadeUp 0.4s ease both'; });
+}
+
+function answer(idx) {
+  const q = QUESTIONS[current];
+  const chosen = q.options[idx];
+  Object.entries(chosen.scores).forEach(([k, v]) => { scores[k] = (scores[k] || 0) + v; });
+
+  const btns = document.querySelectorAll('.opt-btn');
+  btns[idx].classList.add('selected');
+
+  setTimeout(() => {
+    current++;
+    if (current < QUESTIONS.length) renderQuestion();
+    else showResult();
+  }, 350);
+}
+
+function showResult() {
+  document.getElementById('screen-quiz').style.display = 'none';
+  document.getElementById('screen-result').style.display = 'block';
+
+  // 상위 두 속성 찾기
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const top1 = sorted[0][0];
+  const top2 = sorted[1][0];
+
+  // 가장 잘 맞는 캐릭터 찾기
+  let best = CHARACTERS.find(c => c.primary === top1 && c.secondary === top2)
+          || CHARACTERS.find(c => c.primary === top1 && c.secondary === sorted[2][0])
+          || CHARACTERS.find(c => c.primary === top1)
+          || CHARACTERS[0];
+
+  const avatarEl = document.getElementById('res-char-avatar');
+  if (best.image) {
+    avatarEl.innerHTML = `<img src="${best.image}" alt="${best.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span class="emoji-fallback" style="display:none">${best.emoji}</span>`;
+  } else {
+    avatarEl.innerHTML = `<span class="emoji-fallback">${best.emoji}</span>`;
+  }
+  document.getElementById('res-from').textContent = best.from;
+  document.getElementById('res-name').textContent = best.name;
+  document.getElementById('res-subtitle').textContent = `"${best.subtitle}"`;
+  document.getElementById('res-desc').textContent = best.desc;
+  document.getElementById('res-traits').innerHTML = best.traits.map(t => `<span class="trait">${t}</span>`).join('');
+
+  window._result = best;
+}
+
+function shareKakao() {
+  const r = window._result;
+  if (window.Kakao && window.Kakao.isInitialized && window.Kakao.isInitialized()) {
+    Kakao.Share.sendDefault({
+      objectType: 'text',
+      text: `✨ 나에게 어울리는 캐릭터는?\n\n${r.emoji} ${r.name} (${r.from})\n"${r.subtitle}"\n\n나도 해봐!`,
+      link: { mobileWebUrl: window.location.href, webUrl: window.location.href }
+    });
+  } else {
+    copyLink();
+    showToast('카카오 SDK 설정이 필요해요. 링크를 복사했어요! 🔗');
+  }
+}
+
+function copyLink() {
+  const r = window._result;
+  const text = `✨ 내 캐릭터는 ${r.name}!\n${window.location.href}`;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('링크 복사됐어요! 친구에게 공유해봐요 ✨'))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const el = document.createElement('textarea');
+  el.value = text;
+  el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(el);
+  el.focus(); el.select();
+  try {
+    document.execCommand('copy');
+    showToast('링크 복사됐어요! 친구에게 공유해봐요 ✨');
+  } catch(e) {
+    showToast('직접 URL을 복사해주세요 ㅠㅠ');
+  }
+  document.body.removeChild(el);
+}
+
+function retry() {
+  current = 0;
+  scores = { 용기:0, 따뜻함:0, 지혜:0, 자유:0, 창의:0, 감성:0, 신의:0, 밝음:0, 열정:0, 신중:0 };
+  document.getElementById('screen-result').style.display = 'none';
+  document.getElementById('screen-intro').style.display = 'flex';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
