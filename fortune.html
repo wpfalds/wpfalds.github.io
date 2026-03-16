@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏡 나에게 맞는 집터 풍수 분석</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#fffdf8; --gold:#9a6e1a; --gold-light:#7a5010;
+  --jade:#2a8a5a; --text:#2a1f0e; --muted:#9a8a6a;
+  --border:rgba(154,110,26,0.18); --shadow:rgba(154,110,26,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(201,168,76,0.07) 0%,transparent 60%),radial-gradient(ellipse 30% 30% at 10% 80%,rgba(45,106,79,0.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.wrap{max-width:620px;margin:0 auto;padding:0 20px 80px;position:relative;z-index:1;}
+#screen-intro{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;animation:fadeUp 0.8s ease both;}
+.intro-symbol{font-size:56px;margin-bottom:20px;animation:spin 20s linear infinite;display:inline-block;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.intro-title{font-family:'Nanum Myeongjo',serif;font-size:clamp(24px,5vw,38px);font-weight:800;line-height:1.4;margin-bottom:10px;color:var(--gold-light);}
+.intro-divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto;}
+.intro-sub{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:32px;font-weight:300;max-width:380px;}
+.ohang-row{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;justify-content:center;}
+.chip{padding:5px 14px;border-radius:4px;font-size:12px;font-weight:600;}
+.mok{background:rgba(45,106,79,0.1);border:1px solid rgba(45,106,79,0.3);color:#2a8a5a;}
+.hwa{background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);color:#c0392b;}
+.to{background:rgba(154,110,26,0.1);border:1px solid rgba(154,110,26,0.3);color:#9a6e1a;}
+.gum{background:rgba(100,100,110,0.1);border:1px solid rgba(100,100,110,0.3);color:#606070;}
+.su{background:rgba(26,74,122,0.1);border:1px solid rgba(26,74,122,0.3);color:#1a4a7a;}
+.form-card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:460px;box-shadow:0 8px 40px var(--shadow);}
+.flabel{font-family:'Nanum Myeongjo',serif;font-size:12px;color:var(--gold);letter-spacing:0.14em;margin-bottom:8px;display:block;font-weight:700;}
+.toggle{display:flex;margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.tbtn{flex:1;padding:10px;background:#faf8f4;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--muted);font-weight:500;transition:all 0.2s;}
+.tbtn.on{background:var(--gold);color:#fff;font-weight:700;}
+.tbtn:first-child{border-right:1px solid var(--border);}
+.lunar-note{display:none;background:rgba(154,110,26,0.06);border:1px solid rgba(154,110,26,0.15);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.finput,.fsel{background:#faf8f4;border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;width:100%;}
+.finput::placeholder{color:var(--muted);}
+.finput:focus,.fsel:focus{border-color:var(--gold);}
+.fsel{cursor:pointer;-webkit-appearance:none;}
+.fsel option{background:#fff;color:var(--text);}
+.fhint{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6;}
+.btn-go{width:100%;background:linear-gradient(135deg,#8b6f3e,var(--gold),#8b6f3e);background-size:200% 100%;color:#fff;border:none;border-radius:10px;padding:16px;font-family:'Nanum Myeongjo',serif;font-size:17px;font-weight:800;cursor:pointer;letter-spacing:0.1em;transition:background-position 0.4s,transform 0.1s;box-shadow:0 4px 20px rgba(154,110,26,0.25);}
+.btn-go:hover{background-position:100% 0;transform:translateY(-2px);}
+.loading{display:none;text-align:center;padding:80px 20px;}
+.loading-symbol{font-size:52px;animation:spin 3s linear infinite;display:inline-block;margin-bottom:16px;}
+.loading-text{font-family:'Nanum Myeongjo',serif;font-size:15px;color:var(--muted);letter-spacing:0.1em;animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+#screen-result{display:none;padding-top:48px;}
+.rhead{text-align:center;margin-bottom:28px;animation:fadeUp 0.6s ease both;}
+.rsaju{font-family:'Nanum Myeongjo',serif;font-size:12px;color:var(--muted);letter-spacing:0.12em;margin-bottom:8px;}
+.rtitle{font-family:'Nanum Myeongjo',serif;font-size:clamp(20px,4vw,30px);font-weight:800;color:var(--gold-light);margin-bottom:6px;line-height:1.4;}
+.rbadge{display:inline-flex;align-items:center;gap:8px;padding:7px 18px;border-radius:100px;border:1px solid var(--border);font-size:13px;font-weight:600;background:#fff;margin-top:6px;}
+.sec{background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:12px;animation:fadeUp 0.5s ease both;box-shadow:0 2px 16px var(--shadow);}
+.shead{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sicon{font-size:20px;}
+.stitle{font-family:'Nanum Myeongjo',serif;font-size:15px;font-weight:700;color:var(--gold-light);}
+.sdiv{width:100%;height:1px;background:linear-gradient(90deg,var(--border),transparent);margin-bottom:12px;}
+.compass-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.compass{width:130px;height:130px;border-radius:50%;border:2px solid var(--border);position:relative;flex-shrink:0;background:radial-gradient(circle,rgba(201,168,76,0.06),#fdf9f0);}
+.cd{position:absolute;font-size:10px;font-weight:800;color:var(--muted);}
+.cdn{top:7px;left:50%;transform:translateX(-50%);}
+.cds{bottom:7px;left:50%;transform:translateX(-50%);}
+.cde{right:7px;top:50%;transform:translateY(-50%);}
+.cdw{left:7px;top:50%;transform:translateY(-50%);}
+.carrow{position:absolute;top:50%;left:50%;transform-origin:bottom center;width:3px;height:42px;margin-left:-1.5px;margin-top:-42px;border-radius:3px;}
+.cctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:8px;height:8px;background:var(--gold);border-radius:50%;}
+.dinfo{flex:1;min-width:150px;}
+.drow{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.ddot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.ddot-g{background:#2a8a5a;box-shadow:0 0 5px #2a8a5a;}
+.ddot-b{background:#e74c3c;}
+.dtxt{font-size:12px;line-height:1.6;}
+.dtxt strong{color:var(--text);font-weight:700;display:block;}
+.dtxt span{color:var(--muted);font-size:11px;}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.rcard{background:#faf8f4;border-radius:10px;padding:12px;}
+.rcard-g{border:1px solid rgba(42,138,90,0.2);}
+.rcard-b{border:1px solid rgba(231,76,60,0.2);}
+.rlabel{font-size:11px;letter-spacing:0.1em;margin-bottom:7px;font-weight:700;}
+.rlabel-g{color:#2a8a5a;}
+.rlabel-b{color:#e74c3c;}
+.ritems{display:flex;flex-wrap:wrap;gap:5px;}
+.rtag{font-size:11px;padding:3px 9px;border-radius:4px;font-weight:500;}
+.rtag-g{background:rgba(42,138,90,0.1);color:#2a8a5a;}
+.rtag-b{background:rgba(231,76,60,0.08);color:#e74c3c;}
+.elist{display:flex;flex-direction:column;gap:10px;}
+.eitem{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:#faf8f4;border-radius:10px;border:1px solid var(--border);}
+.eico{font-size:20px;flex-shrink:0;}
+.etit{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.edsc{font-size:12px;color:var(--muted);line-height:1.6;}
+.clist{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.citem{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:#faf8f4;border-radius:10px;border:1px solid var(--border);}
+.cflag{font-size:24px;flex-shrink:0;}
+.cname{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.creason{font-size:12px;color:var(--muted);line-height:1.6;}
+.cgrid{display:flex;flex-wrap:wrap;gap:8px;}
+.ccard{background:#faf8f4;border:1px solid var(--border);border-radius:10px;padding:10px 13px;flex:1;min-width:130px;}
+.ccname{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.ccreason{font-size:11px;color:var(--muted);line-height:1.5;}
+.colrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.colchip{display:flex;align-items:center;gap:8px;background:#faf8f4;border:1px solid var(--border);border-radius:8px;padding:8px 12px;}
+.coldot{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,0.08);}
+.colname{font-size:12px;font-weight:600;color:var(--text);}
+.colmean{font-size:10px;color:var(--muted);}
+.mtags{display:flex;flex-wrap:wrap;gap:6px;}
+.mtag{background:rgba(154,110,26,0.08);border:1px solid rgba(154,110,26,0.18);border-radius:6px;padding:4px 11px;font-size:11px;color:var(--gold);font-weight:600;}
+.mtag-bad{background:rgba(231,76,60,0.06);border-color:rgba(231,76,60,0.18);color:#e74c3c;}
+.slabel{font-size:12px;color:var(--muted);display:block;margin-bottom:8px;}
+.gender-box{background:#faf8f4;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.gender-dir{font-size:15px;font-weight:700;margin-bottom:6px;}
+.gender-note{font-size:13px;color:var(--text);line-height:1.7;}
+.g2grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g2card{background:#faf8f4;border-radius:10px;padding:12px;}
+.g2card-g{border:1px solid rgba(42,138,90,0.2);}
+.g2card-b{border:1px solid rgba(231,76,60,0.2);}
+.g2label{font-size:11px;font-weight:700;margin-bottom:6px;}
+.g2label-g{color:#2a8a5a;}
+.g2label-b{color:#e74c3c;}
+.g2val{font-size:12px;color:var(--text);line-height:1.5;}
+.disclaimer{text-align:center;font-size:11px;color:var(--muted);line-height:1.7;padding:16px;border-top:1px solid var(--border);margin-top:6px;}
+.btn-copy{display:block;width:100%;background:rgba(154,110,26,0.07);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'Nanum Myeongjo',serif;font-size:15px;color:var(--gold);cursor:pointer;margin-top:12px;transition:all 0.2s;}
+.btn-copy:hover{background:rgba(154,110,26,0.13);}
+.btn-retry{display:block;width:100%;background:#faf8f4;border:1px solid var(--border);border-radius:10px;padding:13px;font-family:'Nanum Myeongjo',serif;font-size:14px;color:var(--muted);cursor:pointer;margin-top:10px;transition:all 0.2s;}
+.btn-retry:hover{border-color:var(--gold);color:var(--gold);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(40,25,5,0.92);border:1px solid var(--border);color:#fff;border-radius:100px;padding:12px 24px;font-size:13px;opacity:0;transition:all 0.3s;pointer-events:none;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 인트로 -->
+<div id="screen-intro">
+  <div class="intro-symbol">☯</div>
+  <h1 class="intro-title">나에게 맞는<br>집터 풍수 분석</h1>
+  <div class="intro-divider"></div>
+  <p class="intro-sub">생년월일시와 성별을 입력하면 오행을 분석해<br>방위·지역·나라·도시·인테리어까지 알려드려요</p>
+  <div class="ohang-row">
+    <span class="chip mok">木 목</span>
+    <span class="chip hwa">火 화</span>
+    <span class="chip to">土 토</span>
+    <span class="chip gum">金 금</span>
+    <span class="chip su">水 수</span>
+  </div>
+
+  <div class="form-card">
+    <!-- 성별 -->
+    <label class="flabel">성별 선택</label>
+    <div class="toggle" style="margin-bottom:20px">
+      <button class="tbtn on" id="btn-male">♂ 남성 (陽)</button>
+      <button class="tbtn" id="btn-female">♀ 여성 (陰)</button>
+    </div>
+
+    <!-- 음양력 -->
+    <label class="flabel">양력 / 음력 선택</label>
+    <div class="toggle">
+      <button class="tbtn on" id="btn-solar">양력 (陽曆)</button>
+      <button class="tbtn" id="btn-lunar">음력 (陰曆)</button>
+    </div>
+    <div class="lunar-note" id="lunar-note">
+      ※ 음력 입력 시 내부적으로 양력으로 변환하여 계산합니다. 윤달 여부가 중요한 경우 전문 역술가에게 확인하세요.
+    </div>
+
+    <!-- 생년월일 -->
+    <label class="flabel" style="margin-top:16px">생년월일 및 태어난 시간</label>
+    <div class="frow">
+      <input class="finput" type="number" id="inp-year" placeholder="출생연도 (예: 1990)" min="1900" max="2024">
+      <select class="finput fsel" id="inp-month">
+        <option value="">월 선택</option>
+        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+        <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
+    <div class="frow">
+      <select class="finput fsel" id="inp-day"><option value="">일 선택</option></select>
+      <select class="finput fsel" id="inp-hour">
+        <option value="12">태어난 시간 (모름)</option>
+        <option value="0">자시 (子 · 23~01시)</option>
+        <option value="1">축시 (丑 · 01~03시)</option>
+        <option value="2">인시 (寅 · 03~05시)</option>
+        <option value="3">묘시 (卯 · 05~07시)</option>
+        <option value="4">진시 (辰 · 07~09시)</option>
+        <option value="5">사시 (巳 · 09~11시)</option>
+        <option value="6">오시 (午 · 11~13시)</option>
+        <option value="7">미시 (未 · 13~15시)</option>
+        <option value="8">신시 (申 · 15~17시)</option>
+        <option value="9">유시 (酉 · 17~19시)</option>
+        <option value="10">술시 (戌 · 19~21시)</option>
+        <option value="11">해시 (亥 · 21~23시)</option>
+      </select>
+    </div>
+    <p class="fhint">※ 태어난 시간을 모르시면 '모름'을 선택해주세요.</p>
+    <button class="btn-go" id="btn-analyze">✦ 풍수 분석하기 ✦</button>
+  </div>
+</div>
+
+<!-- 로딩 -->
+<div class="loading" id="screen-loading">
+  <div class="loading-symbol">☯</div>
+  <p class="loading-text">사주를 분석하고 있습니다...</p>
+</div>
+
+<!-- 결과 -->
+<div id="screen-result"></div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 상태 변수 ──
+var gender = 'male';
+var calType = 'solar';
+
+// ── 성별 토글 ──
+document.getElementById('btn-male').addEventListener('click', function() {
+  gender = 'male';
+  document.getElementById('btn-male').className = 'tbtn on';
+  document.getElementById('btn-female').className = 'tbtn';
+});
+document.getElementById('btn-female').addEventListener('click', function() {
+  gender = 'female';
+  document.getElementById('btn-male').className = 'tbtn';
+  document.getElementById('btn-female').className = 'tbtn on';
+});
+
+// ── 음양력 토글 ──
+document.getElementById('btn-solar').addEventListener('click', function() {
+  calType = 'solar';
+  document.getElementById('btn-solar').className = 'tbtn on';
+  document.getElementById('btn-lunar').className = 'tbtn';
+  document.getElementById('lunar-note').style.display = 'none';
+});
+document.getElementById('btn-lunar').addEventListener('click', function() {
+  calType = 'lunar';
+  document.getElementById('btn-solar').className = 'tbtn';
+  document.getElementById('btn-lunar').className = 'tbtn on';
+  document.getElementById('lunar-note').style.display = 'block';
+});
+
+// ── 음력 → 양력 변환 (근사값) ──
+function lunarToSolar(y, m, d) {
+  var off = [0,29,29,30,30,31,31,30,30,29,29,30,30];
+  var sDay = d + off[m], sMonth = m + 1, sYear = y;
+  var dim = [0,31,28,31,30,31,30,31,31,30,31,30,31];
+  if ((sYear%4===0 && sYear%100!==0) || sYear%400===0) dim[2] = 29;
+  if (sMonth > 12) { sMonth -= 12; sYear++; }
+  if (sDay > dim[sMonth]) { sDay -= dim[sMonth]; sMonth++; }
+  if (sMonth > 12) { sMonth -= 12; sYear++; }
+  return { year: sYear, month: sMonth, day: sDay };
+}
+
+// ── 날짜 선택 ──
+var monthSel = document.getElementById('inp-month');
+var daySel = document.getElementById('inp-day');
+function updateDays() {
+  var m = parseInt(monthSel.value) || 0;
+  var y = parseInt(document.getElementById('inp-year').value) || 2000;
+  var days = m ? new Date(y, m, 0).getDate() : 31;
+  var cur = daySel.value;
+  daySel.innerHTML = '<option value="">일 선택</option>';
+  for (var i = 1; i <= days; i++) {
+    daySel.innerHTML += '<option value="' + i + '"' + (cur == i ? ' selected' : '') + '>' + i + '일</option>';
+  }
+}
+monthSel.addEventListener('change', updateDays);
+document.getElementById('inp-year').addEventListener('change', updateDays);
+updateDays();
+
+// ── 천간·지지 ──
+var TG = ['갑(甲)','을(乙)','병(丙)','정(丁)','무(戊)','기(己)','경(庚)','신(辛)','임(壬)','계(癸)'];
+var EG = ['자(子)','축(丑)','인(寅)','묘(卯)','진(辰)','사(巳)','오(午)','미(未)','신(申)','유(酉)','술(戌)','해(亥)'];
+var TGO = ['목','목','화','화','토','토','금','금','수','수'];
+var EGO = ['수','토','목','목','토','화','화','토','금','금','토','수'];
+function gTGI(y) { return ((y-4)%10+10)%10; }
+function gEGI(y) { return ((y-4)%12+12)%12; }
+function gTG(y) { return TG[gTGI(y)]; }
+function gEG(y) { return EG[gEGI(y)]; }
+function gDay(y, m, d) {
+  var dt = new Date(y, m-1, d), base = new Date(1900, 0, 1);
+  var diff = Math.floor((dt - base) / 86400000);
+  return { ti: ((diff%10)+10)%10, ei: ((diff%12)+12)%12 };
+}
+function calcO(y, m, d, h) {
+  var s = { 목:0, 화:0, 토:0, 금:0, 수:0 };
+  s[TGO[gTGI(y)]]++; s[EGO[gEGI(y)]]++;
+  s[EGO[(m+1)%12]]++;
+  var di = gDay(y, m, d);
+  s[TGO[di.ti]]++; s[EGO[di.ei]]++;
+  if (h < 12) { s[EGO[h%12]]++; s[TGO[(di.ti%5)*2+(h%2)]]++; }
+  return s;
+}
+
+// ── 오행 데이터 ──
+var OD = {
+  목: {
+    name:'목(木)', color:'#2a8a5a', emoji:'🌳', desc:'나무의 기운 — 성장, 창조, 생명력',
+    bs: 'background:rgba(42,138,90,0.1);border:1px solid rgba(42,138,90,0.3);color:#2a8a5a',
+    방: { good:['동(東)','동남(東南)'], bad:['서(西)','서북(西北)'], ga:-90, ba:90,
+      gd:'목의 기운을 살려주는 동쪽·동남쪽이 길합니다. 아침 햇살이 드는 방향이에요.',
+      bd:'금극목(金剋木) — 서쪽·서북쪽은 목을 극하므로 피하세요.' },
+    지: { good:['강변·하천 인근','숲·공원 인근','동쪽 언덕','녹지 많은 신도시'],
+      bad:['서쪽 바위산 인근','금속 공장 주변','건조한 지형'],
+      gd:'물이 흐르는 곳, 나무가 많은 곳이 목의 기운을 키워줘요.',
+      bd:'금극목 — 바위산이나 금속 시설 근처는 목의 기운을 약하게 해요.' },
+    환: [{i:'🌊',t:'물 가까운 곳 선호',d:'수생목(水生木) — 강, 호수, 하천이 가까운 집은 기운이 강해져요.'},
+      {i:'🌳',t:'나무·녹지가 풍부한 곳',d:'공원, 숲, 나무가 많은 주거지에서 목 기운이 활성화돼요.'},
+      {i:'🌅',t:'동향·동남향 채광',d:'아침 햇빛이 잘 드는 동쪽 창문이 특히 좋아요.'}],
+    인: { c:[{h:'#52b788',n:'연두·초록',m:'생기와 성장의 에너지'},{h:'#8bc34a',n:'풀잎 초록',m:'자연의 생명력'},
+        {h:'#a5d6a7',n:'민트 그린',m:'편안하고 신선한 기운'},{h:'#795548',n:'우드 브라운',m:'목재의 안정적 에너지'}],
+      mat:['원목 가구','대나무 소재','천연 린넨','식물 장식','나무 바닥재','라탄 소품'],
+      av:['흰색·회색 금속 소재','철제 가구 과다','무채색 위주 인테리어'] },
+    나라:[{f:'🇯🇵',n:'일본',r:'자연과 조화를 중시하는 문화, 숲과 물이 풍부한 지형'},
+      {f:'🇨🇦',n:'캐나다',r:'광활한 숲과 청정 자연, 녹지 풍부한 환경'},
+      {f:'🇸🇪',n:'스웨덴',r:'울창한 숲과 맑은 호수, 자연친화적 라이프스타일'},
+      {f:'🇳🇿',n:'뉴질랜드',r:'청정 자연과 녹지, 생명 에너지가 넘치는 땅'}],
+    도시:[{n:'교토 (일본)',r:'자연과 전통이 공존, 강과 숲으로 둘러싸인 도시'},
+      {n:'밴쿠버 (캐나다)',r:'바다와 숲이 만나는 천혜의 자연환경'},
+      {n:'오슬로 (노르웨이)',r:'피오르드와 숲, 물의 기운이 충만한 도시'},
+      {n:'제주도 (한국)',r:'풍부한 자연과 물, 목 기운을 살려주는 섬'},
+      {n:'삿포로 (일본)',r:'녹지와 강이 넘치는 자연 속 도시'}],
+    성별: {
+      male:   { dir:'동(東)·북동(北東)', color:'#2a8a5a', note:'양기와 목의 기운이 결합되어 성장과 도전 에너지가 강해져요. 북동쪽도 보조 길방입니다.', career:'교육·의료·환경·창업·스포츠', avoid:'서남쪽 배치는 피하세요' },
+      female: { dir:'동남(東南)·남(南)', color:'#52b788', note:'음기와 목의 기운이 결합되어 창의성과 감수성이 극대화돼요. 동남향 채광이 특히 좋아요.', career:'디자인·예술·교육·힐링·상담', avoid:'서북쪽 방향은 피하세요' }
+    }
+  },
+  화: {
+    name:'화(火)', color:'#c0392b', emoji:'🔥', desc:'불의 기운 — 열정, 명예, 활력',
+    bs: 'background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);color:#c0392b',
+    방: { good:['남(南)','동남(東南)'], bad:['북(北)','서북(西北)'], ga:0, ba:180,
+      gd:'화의 기운이 강한 남쪽은 햇빛이 풍부하고 양기가 넘쳐요.',
+      bd:'수극화(水剋火) — 북쪽은 음기가 강해 화의 기운을 약하게 해요.' },
+    지: { good:['햇볕 많은 남향 언덕','도심 번화가','활기찬 신시가지','남쪽 평야'],
+      bad:['북쪽 산 그늘진 곳','습지·저지대','음습한 골짜기'],
+      gd:'양기가 넘치는 활기찬 도심이나 햇살이 풍부한 남향 지역이 좋아요.',
+      bd:'습하고 그늘진 북쪽 지역은 화의 기운을 억압해요.' },
+    환: [{i:'☀️',t:'햇빛이 잘 드는 남향',d:'하루 종일 햇볕이 드는 남향 집이 화의 기운을 최대로 살려줘요.'},
+      {i:'🏙️',t:'활기찬 도심 또는 번화가',d:'사람들이 많이 모이는 활기찬 지역이 화의 기운과 잘 맞아요.'},
+      {i:'🏔️',t:'앞이 트인 조망',d:'남쪽으로 조망이 트여야 기운이 막히지 않아요.'}],
+    인: { c:[{h:'#e74c3c',n:'레드',m:'열정과 활력의 에너지'},{h:'#ff9800',n:'오렌지',m:'긍정적 에너지와 따뜻함'},
+        {h:'#ffeb3b',n:'골드 옐로우',m:'빛과 명예의 기운'},{h:'#ff7043',n:'코럴',m:'따뜻하고 생동감 있는 기운'}],
+      mat:['패브릭 소파','촛불·조명 장식','레드 러그','따뜻한 색조 타일','유리 소재','도자기'],
+      av:['어두운 네이비·블랙','지나친 금속 소재','차가운 블루 계열'] },
+    나라:[{f:'🇮🇹',n:'이탈리아',r:'열정적 문화와 햇빛 풍부한 지중해, 활기찬 에너지'},
+      {f:'🇪🇸',n:'스페인',r:'강렬한 태양과 열정적 문화, 화의 기운이 충만'},
+      {f:'🇬🇷',n:'그리스',r:'지중해의 뜨거운 햇살과 고대 문명의 명예'},
+      {f:'🇧🇷',n:'브라질',r:'열정과 생동감 넘치는 삼바의 나라'}],
+    도시:[{n:'로마 (이탈리아)',r:'역사와 열정이 공존, 태양이 빛나는 영원의 도시'},
+      {n:'바르셀로나 (스페인)',r:'창의적 에너지와 지중해 태양이 가득한 도시'},
+      {n:'아테네 (그리스)',r:'고대 명예와 뜨거운 태양, 강렬한 화의 기운'},
+      {n:'부산 (한국)',r:'바다와 산이 만나는 활기찬 에너지의 도시'},
+      {n:'두바이 (UAE)',r:'사막의 뜨거운 열기와 번영의 화 기운'}],
+    성별: {
+      male:   { dir:'남(南)·동(東)', color:'#c0392b', note:'양기와 화의 기운이 결합되어 리더십과 명예 운이 강해져요. 남향 집이 최고의 선택입니다.', career:'정치·연예·스포츠·영업·군인', avoid:'북쪽 방향은 피하세요' },
+      female: { dir:'남(南)·동남(東南)', color:'#e74c3c', note:'음기와 화의 기운이 결합되어 매력과 표현력이 빛을 발해요. 따뜻하고 밝은 공간이 중요해요.', career:'예술·뷰티·미디어·서비스·공연', avoid:'북서쪽 배치는 피하세요' }
+    }
+  },
+  토: {
+    name:'토(土)', color:'#9a6e1a', emoji:'⛰️', desc:'흙의 기운 — 안정, 신뢰, 중심',
+    bs: 'background:rgba(154,110,26,0.1);border:1px solid rgba(154,110,26,0.3);color:#9a6e1a',
+    방: { good:['중앙','남서(南西)'], bad:['동(東)','동북(東北)'], ga:45, ba:-45,
+      gd:'토는 중심의 기운이에요. 남서쪽은 곤방으로 안정과 포용의 기운이 있어요.',
+      bd:'목극토(木剋土) — 동쪽은 목의 기운이 강해 토를 극해요.' },
+    지: { good:['평야·평지 지역','완만한 구릉지','안정적인 구도심','농촌·전원 지역'],
+      bad:['급경사 지형','강한 바람 지역','불안정한 지형'],
+      gd:'넓고 안정적인 평지나 완만한 지형이 토의 기운을 살려줘요.',
+      bd:'급격한 경사나 불안정한 지형은 토의 안정감을 흔들어요.' },
+    환: [{i:'🏡',t:'평지·안정적 지형',d:'사방이 트인 안정적 평지나 완만한 구릉에 위치한 집이 토 기운에 잘 맞아요.'},
+      {i:'🌾',t:'전원·농촌 환경',d:'땅의 기운이 살아있는 전원 지역이 좋아요.'},
+      {i:'🏘️',t:'안정적 구도심',d:'오랜 세월 사람들이 정착해온 안정적인 구도심이나 전통 마을이 좋아요.'}],
+    인: { c:[{h:'#c9a84c',n:'황토·골드',m:'땅의 안정적 에너지'},{h:'#8d6e63',n:'어스 브라운',m:'대지의 포용력'},
+        {h:'#bcaaa4',n:'베이지',m:'편안하고 중립적인 기운'},{h:'#a1887f',n:'테라코타',m:'흙의 따뜻한 에너지'}],
+      mat:['황토 벽','천연석·대리석','도기·토기 소품','황마 카펫','흙 타일','천연 소재 패브릭'],
+      av:['지나친 수목형 장식','파란색 계열 강조','날카로운 형태'] },
+    나라:[{f:'🇨🇳',n:'중국',r:'광활한 대지와 황토 문명, 안정된 토의 기운'},
+      {f:'🇮🇳',n:'인도',r:'풍요로운 대지와 오랜 전통, 토의 안정감'},
+      {f:'🇩🇪',n:'독일',r:'안정적이고 신뢰로운 문화, 중심을 잡는 토의 기운'},
+      {f:'🇨🇭',n:'스위스',r:'알프스의 안정적 대지, 신뢰와 중립의 나라'}],
+    도시:[{n:'베이징 (중국)',r:'천년 역사의 황도, 대지의 기운이 집중된 도시'},
+      {n:'경주 (한국)',r:'신라 천년 고도, 대지의 안정된 기운이 살아있는 곳'},
+      {n:'뮌헨 (독일)',r:'안정적이고 전통이 깊은 바이에른의 중심 도시'},
+      {n:'세종 (한국)',r:'넓은 평야와 안정된 토 기운의 계획 도시'},
+      {n:'뉴델리 (인도)',r:'광활한 평원과 오랜 문명, 토의 기운이 깊은 곳'}],
+    성별: {
+      male:   { dir:'중앙·남서(南西)', color:'#9a6e1a', note:'양기와 토의 기운이 결합되어 안정적인 재물 운과 신뢰감이 높아져요.', career:'부동산·금융·공무원·건설·경영', avoid:'동쪽 방향은 피하세요' },
+      female: { dir:'남서(南西)·중앙', color:'#c9a84c', note:'음기와 토의 기운이 결합되어 가정 화합과 재물 운이 강해져요. 포근하고 안정된 공간이 좋아요.', career:'교육·가정·요리·케어·복지', avoid:'동북쪽 배치는 피하세요' }
+    }
+  },
+  금: {
+    name:'금(金)', color:'#707080', emoji:'⚙️', desc:'쇠의 기운 — 결단, 정밀, 의지',
+    bs: 'background:rgba(100,100,110,0.1);border:1px solid rgba(100,100,110,0.3);color:#606070',
+    방: { good:['서(西)','서북(西北)'], bad:['남(南)','동남(東南)'], ga:90, ba:-90,
+      gd:'금의 기운이 강한 서쪽과 서북쪽은 결단력과 의지를 강화해줘요.',
+      bd:'화극금(火剋金) — 남쪽의 강한 불 기운은 금을 녹여버려요.' },
+    지: { good:['서쪽 산지·바위 지형','고원 지대','서북쪽 지역','개발된 도시지역'],
+      bad:['남향 저지대','습한 분지','화기 많은 공업지대'],
+      gd:'바위·암반이 많은 단단한 지형이 금의 기운을 강하게 해줘요.',
+      bd:'뜨거운 기운이 강한 남향 저지대나 공업지대는 금의 기운을 약화시켜요.' },
+    환: [{i:'🗻',t:'서쪽 바위산·암반 지형',d:'단단한 바위와 암반이 많은 서쪽 지형은 금의 기운을 강하게 해줘요.'},
+      {i:'🌬️',t:'서늘하고 맑은 공기',d:'선선하고 건조한 기후의 서북쪽 지역이 금 기운과 잘 맞아요.'},
+      {i:'🏙️',t:'정비된 도시 환경',d:'깔끔하게 정비된 현대적 도시 환경이 금의 정밀한 기운을 살려줘요.'}],
+    인: { c:[{h:'#bdbdbd',n:'실버·그레이',m:'정밀함과 결단의 기운'},{h:'#f5f5f5',n:'화이트',m:'순수함과 청결한 에너지'},
+        {h:'#ffd700',n:'골드',m:'금의 가치와 풍요'},{h:'#9e9e9e',n:'메탈릭',m:'강인하고 날카로운 기운'}],
+      mat:['스테인리스 소재','금속 프레임','화이트 타일','대리석','유리 테이블','크롬 인테리어'],
+      av:['붉은색 계열 강조','지나친 목재','어수선한 배치'] },
+    나라:[{f:'🇨🇭',n:'스위스',r:'정밀과 신뢰의 나라, 금의 기운이 응축된 알프스'},
+      {f:'🇦🇺',n:'호주',r:'광물자원이 풍부한 대지, 금의 기운이 강한 나라'},
+      {f:'🇺🇸',n:'미국',r:'강력한 의지와 결단력, 금의 기운으로 세계를 이끄는 나라'},
+      {f:'🇬🇧',n:'영국',r:'전통과 격식, 정밀함의 문화를 가진 나라'}],
+    도시:[{n:'취리히 (스위스)',r:'세계 금융의 중심, 정밀과 신뢰의 금 기운'},
+      {n:'시드니 (호주)',r:'서쪽 암반 지형과 개방적 에너지, 금의 기운'},
+      {n:'뉴욕 (미국)',r:'강력한 에너지와 결단력, 마천루의 금속 기운'},
+      {n:'런던 (영국)',r:'역사와 전통, 격식 있는 금의 기운이 흐르는 도시'},
+      {n:'싱가포르',r:'정밀하게 설계된 현대적 금 기운의 도시'}],
+    성별: {
+      male:   { dir:'서(西)·서북(西北)', color:'#606070', note:'양기와 금의 기운이 결합되어 강력한 의지력과 재물 축적 능력이 강해져요.', career:'법조·금융·IT·제조업·군인', avoid:'남쪽 방향은 피하세요' },
+      female: { dir:'서(西)·서남(西南)', color:'#909090', note:'음기와 금의 기운이 결합되어 세련된 감각과 재물 운이 조화를 이뤄요.', career:'뷰티·패션·금융·기획·디자인', avoid:'남동쪽 배치는 피하세요' }
+    }
+  },
+  수: {
+    name:'수(水)', color:'#1a4a7a', emoji:'🌊', desc:'물의 기운 — 지혜, 유연함, 깊이',
+    bs: 'background:rgba(26,74,122,0.1);border:1px solid rgba(26,74,122,0.3);color:#1a4a7a',
+    방: { good:['북(北)','동북(東北)'], bad:['남(南)','서남(西南)'], ga:180, ba:0,
+      gd:'수의 기운이 모이는 북쪽은 지혜와 깊이를 더해줘요.',
+      bd:'토극수(土剋水) — 남쪽과 서남쪽의 토 기운은 물을 막아버려요.' },
+    지: { good:['강·바다·호수 인근','북쪽 물 흐르는 곳','습기 있는 지형','조용한 북쪽 주거지'],
+      bad:['건조한 고원','남서쪽 황토지대','물 없는 분지'],
+      gd:'강이나 바다, 호수처럼 물이 가까운 곳에서 수의 기운이 풍부해져요.',
+      bd:'건조하고 황토가 많은 지역은 수의 기운을 흡수해버려요.' },
+    환: [{i:'🌊',t:'강·바다·호수 인근',d:'물이 흐르거나 고인 곳 근처에 집이 있으면 수의 기운이 충만해져요.'},
+      {i:'🌙',t:'조용하고 음기 있는 환경',d:'시끄럽지 않고 조용한 주거 환경이 수 기운의 지혜로움을 키워줘요.'},
+      {i:'🏔️',t:'배산임수 지형',d:'집 뒤 북쪽에 산이 있어 바람을 막아주는 배산임수(背山臨水) 지형이 최고예요.'}],
+    인: { c:[{h:'#5dade2',n:'블루',m:'지혜와 깊이의 에너지'},{h:'#1a237e',n:'딥 네이비',m:'고요하고 깊은 기운'},
+        {h:'#b3e5fc',n:'아이스 블루',m:'맑고 투명한 수 기운'},{h:'#424242',n:'차콜',m:'수의 어둡고 깊은 에너지'}],
+      mat:['유리·수정 소품','거울','블루 타일','물 요소(어항·분수)','블랙·네이비 패브릭','조약돌 장식'],
+      av:['지나친 황토색','토기 소품 과다','메마른 느낌의 소재'] },
+    나라:[{f:'🇳🇱',n:'네덜란드',r:'물의 나라, 운하와 바다가 수의 기운을 가득 채운 곳'},
+      {f:'🇳🇴',n:'노르웨이',r:'피오르드와 청정 바다, 깊고 지혜로운 수의 기운'},
+      {f:'🇫🇮',n:'핀란드',r:'수천 개의 호수, 조용하고 깊은 수의 기운'},
+      {f:'🇵🇹',n:'포르투갈',r:'대서양 바다와 물의 기운, 지혜롭고 깊은 문화'}],
+    도시:[{n:'암스테르담 (네덜란드)',r:'운하 도시, 물의 기운이 도시 전체에 흐르는 곳'},
+      {n:'오슬로 (노르웨이)',r:'피오르드와 바다, 깊은 수의 기운이 넘치는 도시'},
+      {n:'헬싱키 (핀란드)',r:'발트해와 수천 개 호수, 조용하고 지혜로운 수 기운'},
+      {n:'춘천 (한국)',r:'호수와 강이 감싸는 수 기운의 도시'},
+      {n:'베네치아 (이탈리아)',r:'물 위의 도시, 수 기운의 정수'}],
+    성별: {
+      male:   { dir:'북(北)·동북(東北)', color:'#1a4a7a', note:'양기와 수의 기운이 결합되어 지혜와 학문 운, 사업 능력이 강화돼요.', career:'학문·연구·IT·무역·금융', avoid:'남쪽 방향은 피하세요' },
+      female: { dir:'북(北)·동(東)', color:'#5dade2', note:'음기와 수의 기운이 결합되어 깊은 감수성과 직관력이 빛을 발해요. 물 가까운 조용한 공간이 좋아요.', career:'상담·예술·문학·힐링·교육', avoid:'서남쪽 배치는 피하세요' }
+    }
+  }
+};
+
+// ── 분석 ──
+document.getElementById('btn-analyze').addEventListener('click', function() {
+  var year = parseInt(document.getElementById('inp-year').value);
+  var month = parseInt(document.getElementById('inp-month').value);
+  var day = parseInt(document.getElementById('inp-day').value);
+  var hour = parseInt(document.getElementById('inp-hour').value);
+  if (!year || year < 1900 || year > 2024) { showToast('올바른 출생연도를 입력해주세요'); return; }
+  if (!month) { showToast('월을 선택해주세요'); return; }
+  if (!day) { showToast('일을 선택해주세요'); return; }
+  var calLabel = '양력';
+  if (calType === 'lunar') {
+    var s = lunarToSolar(year, month, day);
+    year = s.year; month = s.month; day = s.day;
+    calLabel = '음력→양력';
+  }
+  document.getElementById('screen-intro').style.display = 'none';
+  document.getElementById('screen-loading').style.display = 'block';
+  var g = gender, cl = calLabel;
+  setTimeout(function() {
+    document.getElementById('screen-loading').style.display = 'none';
+    showResult(year, month, day, isNaN(hour) ? 12 : hour, cl, g);
+  }, 1800);
+});
+
+// ── 결과 렌더링 ──
+function showResult(year, month, day, hour, calLabel, g) {
+  var scores = calcO(year, month, day, hour);
+  var sorted = Object.entries(scores).sort(function(a,b){ return b[1]-a[1]; });
+  var main = sorted[0][0], sub = sorted[1][0];
+  var D = OD[main], sD = OD[sub];
+  var di = gDay(year, month, day);
+  var gLabel = g === 'male' ? '♂ 남성' : '♀ 여성';
+  var saju = gTG(year) + gEG(year) + '년 · ' + month + '월 · ' + TG[di.ti] + EG[di.ei] + '일 (' + calLabel + ' · ' + gLabel + ')';
+  var gd = D.성별[g];
+
+  var html = '';
+
+  // 헤더
+  html += '<div class="rhead">';
+  html += '<div class="rsaju">' + saju + '</div>';
+  html += '<div class="rtitle">' + D.emoji + ' 주 오행은 <strong>' + D.name + '</strong></div>';
+  html += '<p style="font-size:13px;color:var(--muted);margin-bottom:8px">' + D.desc + '</p>';
+  html += '<span class="rbadge" style="' + D.bs + '">' + D.emoji + ' ' + D.name + ' &nbsp;+&nbsp; ' + sD.emoji + ' ' + sD.name + '</span>';
+  html += '</div>';
+
+  // 방위
+  html += '<div class="sec" style="animation-delay:0.1s">';
+  html += '<div class="shead"><span class="sicon">🧭</span><span class="stitle">나에게 맞는 집 방위</span></div>';
+  html += '<div class="sdiv"></div>';
+  html += '<div class="compass-wrap">';
+  html += '<div class="compass">';
+  html += '<span class="cd cdn">北</span><span class="cd cds">南</span><span class="cd cde">東</span><span class="cd cdw">西</span>';
+  html += '<div class="carrow" style="background:' + D.color + ';box-shadow:0 0 8px ' + D.color + ';transform:rotate(' + D.방.ga + 'deg)"></div>';
+  html += '<div class="carrow" style="background:#e74c3c;opacity:0.4;transform:rotate(' + D.방.ba + 'deg)"></div>';
+  html += '<div class="cctr"></div></div>';
+  html += '<div class="dinfo">';
+  html += '<div class="drow"><div class="ddot ddot-g"></div><div class="dtxt"><strong>길(吉) ' + D.방.good.join(', ') + '</strong><span>' + D.방.gd + '</span></div></div>';
+  html += '<div class="drow"><div class="ddot ddot-b"></div><div class="dtxt"><strong>흉(凶) ' + D.방.bad.join(', ') + '</strong><span>' + D.방.bd + '</span></div></div>';
+  html += '</div></div></div>';
+
+  // 성별 맞춤
+  html += '<div class="sec" style="animation-delay:0.15s">';
+  html += '<div class="shead"><span class="sicon">' + (g==='male'?'♂':'♀') + '</span><span class="stitle">' + gLabel + ' · 성별 맞춤 풍수</span></div>';
+  html += '<div class="sdiv"></div>';
+  html += '<div class="gender-box">';
+  html += '<div style="font-size:11px;color:var(--muted);margin-bottom:5px">' + (g==='male'?'양(陽)':'음(陰)') + '의 기운 보정 방위</div>';
+  html += '<div class="gender-dir" style="color:' + gd.color + '">✦ ' + gd.dir + '</div>';
+  html += '<div class="gender-note">' + gd.note + '</div>';
+  html += '</div>';
+  html += '<div class="g2grid">';
+  html += '<div class="g2card g2card-g"><div class="g2label g2label-g">✦ 잘 맞는 직업·분야</div><div class="g2val">' + gd.career + '</div></div>';
+  html += '<div class="g2card g2card-b"><div class="g2label g2label-b">✕ 주의할 점</div><div class="g2val">' + gd.avoid + '</div></div>';
+  html += '</div></div>';
+
+  // 지역
+  html += '<div class="sec" style="animation-delay:0.2s">';
+  html += '<div class="shead"><span class="sicon">🗺️</span><span class="stitle">좋은 지역과 피해야 할 환경</span></div>';
+  html += '<div class="sdiv"></div>';
+  html += '<div class="rgrid">';
+  html += '<div class="rcard rcard-g"><div class="rlabel rlabel-g">✦ 좋은 환경</div><div class="ritems">' + D.지.good.map(function(r){ return '<span class="rtag rtag-g">'+r+'</span>'; }).join('') + '</div></div>';
+  html += '<div class="rcard rcard-b"><div class="rlabel rlabel-b">✕ 피할 환경</div><div class="ritems">' + D.지.bad.map(function(r){ return '<span class="rtag rtag-b">'+r+'</span>'; }).join('') + '</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7">✦ ' + D.지.gd + '</p>';
+  html += '<p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.7">✕ ' + D.지.bd + '</p>';
+  html += '</div>';
+
+  // 환경
+  html += '<div class="sec" style="animation-delay:0.25s">';
+  html += '<div class="shead"><span class="sicon">🏡</span><span class="stitle">이상적인 주거 환경</span></div>';
+  html += '<div class="sdiv"></div>';
+  html += '<div class="elist">' + D.환.map(function(e){ return '<div class="eitem"><div class="eico">'+e.i+'</div><div><div class="etit">'+e.t+'</div><div class="edsc">'+e.d+'</div></div></div>'; }).join('') + '</div>';
+  html += '</div>';
+
+  // 나라·도시
+  html += '<div class="sec" style="animation-delay:0.3s">';
+  html += '<div class="shead"><span class="sicon">🌍</span><span class="stitle">나에게 잘 맞는 나라와 도시</span></div>';
+  html += '<div class="sdiv"></div>';
+  html += '<span class="slabel">✦ 추천 나라</span>';
+  html += '<div class="clist">' + D.나라.map(function(c){ return '<div class="citem"><div class="cflag">'+c.f+'</div><div><div class="cname">'+c.n+'</div><div class="creason">'+c.r+'</div></div></div>'; }).join('') + '</div>';
+  html += '<span class="slabel">✦ 추천 도시</span>';
+  html += '<div class="cgrid">' + D.도시.map(function(c){ return '<div class="ccard"><div class="ccname">📍 '+c.n+'</div><div class="ccreason">'+c.r+'</div></div>'; }).join('') + '</div>';
+  html += '</div>';
+
+  // 인테리어
+  html += '<div class="sec" style="animation-delay:0.35s">';
+  html += '<div class="shead"><span class="sicon">🎨</span><span class="stitle">인테리어 컬러 & 소재 추천</span></div>';
+  html += '<div class="sdiv"></div>';
+  html += '<span class="slabel">✦ 추천 컬러</span>';
+  html += '<div class="colrow">' + D.인.c.map(function(c){ return '<div class="colchip"><div class="coldot" style="background:'+c.h+'"></div><div><div class="colname">'+c.n+'</div><div class="colmean">'+c.m+'</div></div></div>'; }).join('') + '</div>';
+  html += '<span class="slabel">✦ 추천 소재</span>';
+  html += '<div class="mtags">' + D.인.mat.map(function(m){ return '<span class="mtag">'+m+'</span>'; }).join('') + '</div>';
+  html += '<span class="slabel" style="margin-top:12px">✕ 피할 소재·색상</span>';
+  html += '<div class="mtags">' + D.인.av.map(function(m){ return '<span class="mtag mtag-bad">'+m+'</span>'; }).join('') + '</div>';
+  html += '</div>';
+
+  html += '<div class="disclaimer">본 분석은 전통 풍수지리 이론(청오경·금낭경)과 오행·음양론을 기반으로 한 참고용 콘텐츠입니다.<br>실제 주거 결정 시에는 전문 풍수사의 상담을 받으시기를 권장해요.</div>';
+  html += '<button class="btn-copy" id="btn-copy">🔗 결과 링크 복사</button>';
+  html += '<button class="btn-retry" id="btn-retry">↺ 다시 분석하기</button>';
+
+  var el = document.getElementById('screen-result');
+  el.style.display = 'block';
+  el.innerHTML = html;
+
+  document.getElementById('btn-copy').addEventListener('click', function() {
+    var text = '🏡 나의 풍수 분석\n주 오행: ' + D.name + ' ' + D.emoji + '\n성별: ' + gLabel + '\n' + D.desc + '\n\n✦ 좋은 방위: ' + D.방.good.join(', ') + '\n✦ 성별 보정 방위: ' + gd.dir + '\n✦ 추천 나라: ' + D.나라.slice(0,2).map(function(c){return c.n;}).join(', ') + '\n\n' + window.location.href;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function(){ showToast('결과가 복사됐어요! 🏡'); });
+    } else {
+      var t = document.createElement('textarea');
+      t.value = text; t.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); showToast('결과가 복사됐어요! 🏡'); } catch(e) {}
+      document.body.removeChild(t);
+    }
+  });
+  document.getElementById('btn-retry').addEventListener('click', function() {
+    document.getElementById('screen-result').style.display = 'none';
+    document.getElementById('screen-result').innerHTML = '';
+    document.getElementById('screen-intro').style.display = 'flex';
+  });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+</script>
+</body>
+</html>
