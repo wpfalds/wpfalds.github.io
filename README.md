@@ -5,3 +5,6 @@ https://wpfalds.github.io/love-mbti.html
 
 #캐릭터 테스트
 https://wpfalds.github.io/character-test.html
+
+#fortune 테스트
+https://wpfalds.github.io/fortune.html
