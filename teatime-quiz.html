@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팀 티타임 퀴즈 🎉</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Gaegu:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFD93D;
+    --orange: #FF6B35;
+    --pink: #FF6B9D;
+    --mint: #4ECDC4;
+    --blue: #45B7D1;
+    --purple: #A78BFA;
+    --green: #6BCB77;
+    --bg: #FFF9F0;
+    --card: #FFFFFF;
+    --text: #1A1A2E;
+    --muted: #6B7280;
+    --a: #F59E0B;
+    --b: #10B981;
+    --c: #EC4899;
+    --d: #8B5CF6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(circle at 10% 15%, rgba(255,217,61,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 90% 85%, rgba(78,205,196,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255,107,157,0.07) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── 레이아웃 ── */
+  .app {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px;
+    position: relative;
+    z-index: 1;
+    align-items: start;
+  }
+
+  /* ── 사이드바 점수판 ── */
+  .sidebar {
+    position: sticky;
+    top: 24px;
+  }
+
+  .score-panel {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  }
+
+  .score-panel-title {
+    font-family: 'Gaegu', cursive;
+    font-size: 20px;
+    text-align: center;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .score-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    background: #F9FAFB;
+  }
+
+  .score-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .team-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .score-item .label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .score-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .score-val {
+    font-family: 'Gaegu', cursive;
+    font-size: 26px;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  .sc-btn {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .sc-btn:hover { transform: scale(1.15); }
+  .sc-btn.plus { background: #DCFCE7; color: #16A34A; }
+  .sc-btn.minus { background: #FEE2E2; color: #DC2626; }
+
+  .reset-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    border: 1.5px dashed #D1D5DB;
+    border-radius: 12px;
+    background: transparent;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* 세션 인디케이터 */
+  .session-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+  }
+
+  .session-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #E5E7EB;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .session-dot.active { background: var(--orange); transform: scale(1.3); }
+  .session-dot.done { background: var(--mint); }
+
+  /* ── 메인 콘텐츠 ── */
+  .main { min-width: 0; }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .header h1 {
+    font-family: 'Gaegu', cursive;
+    font-size: clamp(26px, 4vw, 38px);
+    color: var(--text);
+  }
+
+  .header-emoji { font-size: 36px; }
+
+  /* 세션 네비 */
+  .session-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 100px;
+    background: white;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  .session-info {
+    text-align: center;
+  }
+
+  .session-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--orange);
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .session-badge.bonus { background: linear-gradient(135deg, var(--yellow), var(--orange)); }
+
+  .session-title-text {
+    font-family: 'Gaegu', cursive;
+    font-size: 22px;
+    color: var(--text);
+    display: block;
+  }
+
+  /* ── 세션 1-4: 4개 카드 그리드 ── */
+  .quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .quiz-card {
+    background: white;
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border-top: 5px solid transparent;
+    transition: transform 0.2s;
+    position: relative;
+  }
+
+  .quiz-card:hover { transform: translateY(-2px); }
+  .quiz-card.team-a { border-top-color: var(--a); }
+  .quiz-card.team-b { border-top-color: var(--b); }
+  .quiz-card.team-c { border-top-color: var(--c); }
+  .quiz-card.team-d { border-top-color: var(--d); }
+
+  .card-team-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .team-a .card-team-badge { background: #FEF3C7; color: var(--a); }
+  .team-b .card-team-badge { background: #D1FAE5; color: #059669; }
+  .team-c .card-team-badge { background: #FCE7F3; color: var(--c); }
+  .team-d .card-team-badge { background: #EDE9FE; color: var(--d); }
+
+  .card-person {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .card-question {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .card-question strong { color: var(--text); font-weight: 700; }
+
+  /* 답변 토글 */
+  .reveal-toggle {
+    width: 100%;
+    padding: 9px 14px;
+    border: 1.5px dashed #D1D5DB;
+    border-radius: 12px;
+    background: transparent;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .reveal-toggle:hover { border-color: var(--mint); color: var(--mint); }
+  .reveal-toggle.open { border-style: solid; border-color: var(--mint); color: #0D9488; background: #F0FFFE; }
+
+  .answer-area {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: #F0FFFE;
+    border: 1.5px solid var(--mint);
+    border-radius: 12px;
+    display: none;
+    animation: popIn 0.3s ease;
+  }
+
+  .answer-area.visible { display: block; }
+
+  .answer-area textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    min-height: 50px;
+  }
+
+  @keyframes popIn {
+    0% { opacity:0; transform:scale(0.95); }
+    60% { transform:scale(1.02); }
+    100% { opacity:1; transform:scale(1); }
+  }
+
+  /* ── 세션 5,6: 보너스 단일 카드 ── */
+  .bonus-card {
+    background: white;
+    border-radius: 28px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bonus-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: var(--yellow);
+    opacity: 0.08;
+  }
+
+  .bonus-emoji { font-size: 52px; margin-bottom: 16px; display: block; }
+
+  .bonus-card h2 {
+    font-family: 'Gaegu', cursive;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .bonus-card p {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .bonus-card p strong { color: var(--text); font-weight: 700; }
+
+  .bonus-reveal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 100px;
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    color: white;
+    font-family: 'Gaegu', cursive;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(255,107,53,0.25);
+  }
+
+  .bonus-reveal-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,107,53,0.35); }
+
+  .bonus-answer-box {
+    margin-top: 24px;
+    padding: 20px 28px;
+    background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+    border: 2px solid var(--yellow);
+    border-radius: 18px;
+    display: none;
+    animation: popIn 0.4s ease;
+  }
+
+  .bonus-answer-box.visible { display: block; }
+
+  .bonus-answer-box p { font-size: 14px; color: var(--muted); margin-bottom: 8px; text-align: left; }
+
+  .bonus-answer-box textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    min-height: 60px;
+    text-align: center;
+  }
+
+  /* 힌트 태그들 */
+  .hint-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .hint-tag {
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #F3F4F6;
+    color: var(--muted);
+  }
+
+  /* 진행 완료 버튼 */
+  .done-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 16px;
+    background: #F3F4F6;
+    color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .done-btn:hover { background: var(--mint); color: white; }
+  .done-btn.marked { background: var(--mint); color: white; }
+
+  /* 결과 화면 */
+  .result-screen {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeSlideIn 0.5s ease;
+  }
+
+  .result-screen.visible { display: block; }
+
+  @keyframes fadeSlideIn {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  .result-emoji { font-size: 64px; margin-bottom: 16px; display: block; animation: bounceIn 0.6s ease; }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.5); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .result-screen h2 {
+    font-family: 'Gaegu', cursive;
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  .result-screen > p { font-size: 15px; color: var(--muted); margin-bottom: 32px; }
+
+  .result-podium {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .podium-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .podium-rank { font-size: 28px; }
+  .podium-name { font-family: 'Gaegu', cursive; font-size: 18px; font-weight: 700; }
+  .podium-score { font-size: 13px; color: var(--muted); }
+
+  .podium-bar {
+    width: 72px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .podium-score-big {
+    font-family: 'Gaegu', cursive;
+    font-size: 22px;
+    color: white;
+    font-weight: 700;
+  }
+
+  .restart-btn {
+    padding: 15px 48px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    color: white;
+    font-family: 'Gaegu', cursive;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(255,107,53,0.3);
+  }
+
+  .restart-btn:hover { transform: translateY(-2px); }
+
+  /* 반응형 */
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .quiz-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── 메인 ── -->
+  <div class="main">
+
+    <!-- 헤더 -->
+    <div class="header">
+      <div class="header-top">
+        <span class="header-emoji">🎉</span>
+        <h1>팀 티타임 퀴즈</h1>
+        <span class="header-emoji">🎉</span>
+      </div>
+    </div>
+
+    <!-- 세션 네비 -->
+    <div class="session-nav">
+      <button class="nav-btn" id="prev-btn" onclick="changeSession(-1)" disabled>← 이전</button>
+      <div class="session-info">
+        <div class="session-badge" id="session-badge">세션 1 / 6</div>
+        <span class="session-title-text" id="session-title">업무 스트레스 대처법</span>
+      </div>
+      <button class="nav-btn" id="next-btn" onclick="changeSession(1)">다음 →</button>
+    </div>
+
+    <!-- 콘텐츠 영역 -->
+    <div id="content-area"></div>
+
+    <!-- 결과 화면 -->
+    <div class="result-screen" id="result-screen"></div>
+
+  </div>
+
+  <!-- ── 사이드바 ── -->
+  <div class="sidebar">
+    <div class="score-panel">
+      <div class="score-panel-title">🏆 점수판</div>
+
+      <div class="score-item">
+        <div class="score-item-left">
+          <div class="team-dot" style="background:var(--a)"></div>
+          <span class="label" style="color:var(--a)">A 조</span>
+        </div>
+        <div class="score-controls">
+          <button class="sc-btn minus" onclick="changeScore('A',-1)">−</button>
+          <span class="score-val" id="score-A" style="color:var(--a)">0</span>
+          <button class="sc-btn plus" onclick="changeScore('A',1)">+</button>
+        </div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-item-left">
+          <div class="team-dot" style="background:var(--b)"></div>
+          <span class="label" style="color:var(--b)">B 조</span>
+        </div>
+        <div class="score-controls">
+          <button class="sc-btn minus" onclick="changeScore('B',-1)">−</button>
+          <span class="score-val" id="score-B" style="color:var(--b)">0</span>
+          <button class="sc-btn plus" onclick="changeScore('B',1)">+</button>
+        </div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-item-left">
+          <div class="team-dot" style="background:var(--c)"></div>
+          <span class="label" style="color:var(--c)">C 조</span>
+        </div>
+        <div class="score-controls">
+          <button class="sc-btn minus" onclick="changeScore('C',-1)">−</button>
+          <span class="score-val" id="score-C" style="color:var(--c)">0</span>
+          <button class="sc-btn plus" onclick="changeScore('C',1)">+</button>
+        </div>
+      </div>
+
+      <div class="score-item">
+        <div class="score-item-left">
+          <div class="team-dot" style="background:var(--d)"></div>
+          <span class="label" style="color:var(--d)">D 조</span>
+        </div>
+        <div class="score-controls">
+          <button class="sc-btn minus" onclick="changeScore('D',-1)">−</button>
+          <span class="score-val" id="score-D" style="color:var(--d)">0</span>
+          <button class="sc-btn plus" onclick="changeScore('D',1)">+</button>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="resetScores()">🔄 점수 초기화</button>
+
+      <!-- 세션 인디케이터 -->
+      <div class="session-dots" id="session-dots"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── 데이터 ──
+  const sessions = [
+    {
+      type: 'grid',
+      badge: '세션 1 / 6',
+      title: '업무 스트레스 대처법',
+      questions: [
+        { team: 'A', person: '김지용', q: '업무 스트레스 대처법은 무엇일까요?' },
+        { team: 'B', person: '곽태호', q: '업무 스트레스 대처법은 무엇일까요?' },
+        { team: 'C', person: '한예승', q: '업무 스트레스 대처법은 무엇일까요?' },
+        { team: 'D', person: '이서연', q: '업무 스트레스 대처법은 무엇일까요?' },
+      ]
+    },
+    {
+      type: 'grid',
+      badge: '세션 2 / 6',
+      title: '입사 후 가장 뿌듯했던 순간',
+      questions: [
+        { team: 'A', person: '안유영', q: '입사 후 가장 뿌듯했던 순간은 언제일까요?' },
+        { team: 'B', person: '이가현', q: '입사 후 가장 뿌듯했던 순간은 언제일까요?' },
+        { team: 'C', person: '홍지선', q: '입사 후 가장 뿌듯했던 순간은 언제일까요?' },
+        { team: 'D', person: '석민경', q: '입사 후 가장 뿌듯했던 순간은 언제일까요?' },
+      ]
+    },
+    {
+      type: 'grid',
+      badge: '세션 3 / 6',
+      title: '요즘 가장 많은 시간을 쏟는 업무',
+      questions: [
+        { team: 'A', person: '최소민', q: '요즘 가장 많은 시간을 쏟는 업무는 무엇일까요?' },
+        { team: 'B', person: '정승혜', q: '요즘 가장 많은 시간을 쏟는 업무는 무엇일까요?' },
+        { team: 'C', person: '이예림', q: '요즘 가장 많은 시간을 쏟는 업무는 무엇일까요?' },
+        { team: 'D', person: '김상균', q: '요즘 가장 많은 시간을 쏟는 업무는 무엇일까요?' },
+      ]
+    },
+    {
+      type: 'grid',
+      badge: '세션 4 / 6',
+      title: '올해 팀에서의 목표',
+      questions: [
+        { team: 'A', person: '이서연', q: '올해 팀에서의 목표는 무엇일까요?' },
+        { team: 'B', person: '안정민', q: '올해 팀에서의 목표는 무엇일까요?' },
+        { team: 'C', person: '곽태호', q: '올해 팀에서의 목표는 무엇일까요?' },
+        { team: 'D', person: '팀장님', q: '올해 팀에서의 목표는 무엇일까요?' },
+      ]
+    },
+    {
+      type: 'bonus',
+      badge: '보너스 1 / 6',
+      isBonus: true,
+      title: '🎂 보너스 문제 1',
+      emoji: '🎂',
+      person: '곽태호',
+      question: '곽태호님의 생일은 몇 월 며칠일까요?',
+      hint: '월 / 일 형식으로 답해주세요!',
+    },
+    {
+      type: 'bonus',
+      badge: '보너스 2 / 6',
+      isBonus: true,
+      title: '🍽️ 보너스 문제 2',
+      emoji: '🍽️',
+      person: '이서연',
+      question: '이서연님의 회사 근처 최애 맛집은 어디일까요?',
+      hint: '상호명이나 음식 종류로 답해주세요!',
+    },
+  ];
+
+  let currentSession = 0;
+  let scores = { A: 0, B: 0, C: 0, D: 0 };
+  const teamColors = { A: 'var(--a)', B: 'var(--b)', C: 'var(--c)', D: 'var(--d)' };
+
+  // ── 초기화 ──
+  function init() {
+    renderDots();
+    renderSession();
+  }
+
+  // ── 세션 이동 ──
+  function changeSession(dir) {
+    const next = currentSession + dir;
+    if (next < 0 || next >= sessions.length) return;
+    currentSession = next;
+    renderSession();
+    renderDots();
+  }
+
+  // ── 세션 렌더 ──
+  function renderSession() {
+    const s = sessions[currentSession];
+    const area = document.getElementById('content-area');
+    const result = document.getElementById('result-screen');
+    result.classList.remove('visible');
+    result.innerHTML = '';
+
+    document.getElementById('prev-btn').disabled = currentSession === 0;
+    document.getElementById('next-btn').textContent = currentSession === sessions.length - 1 ? '결과 보기 🏆' : '다음 →';
+    document.getElementById('next-btn').onclick = currentSession === sessions.length - 1
+      ? showResult
+      : () => changeSession(1);
+
+    document.getElementById('session-badge').textContent = s.badge;
+    document.getElementById('session-badge').className = 'session-badge' + (s.isBonus ? ' bonus' : '');
+    document.getElementById('session-title').textContent = s.title;
+
+    if (s.type === 'grid') {
+      area.innerHTML = renderGrid(s);
+    } else {
+      area.innerHTML = renderBonus(s);
+    }
+  }
+
+  // ── 그리드 렌더 ──
+  function renderGrid(s) {
+    const cards = s.questions.map((q, i) => `
+      <div class="quiz-card team-${q.team.toLowerCase()}">
+        <div class="card-team-badge">${q.team} 조</div>
+        <div class="card-person">👤 ${q.person}님</div>
+        <div class="card-question"><strong>${q.person}</strong>님의 <strong>${q.q}</strong></div>
+        <button class="reveal-toggle" id="reveal-${currentSession}-${i}" onclick="toggleAnswer(${currentSession},${i})">
+          🎁 정답 공개 (주인공이 직접!)
+        </button>
+        <div class="answer-area" id="answer-${currentSession}-${i}">
+          <textarea placeholder="정답을 여기에 입력해주세요..."></textarea>
+        </div>
+      </div>
+    `).join('');
+
+    return `<div class="quiz-grid">${cards}</div>`;
+  }
+
+  // ── 보너스 렌더 ──
+  function renderBonus(s) {
+    const sid = currentSession;
+    return `
+      <div class="bonus-card">
+        <span class="bonus-emoji">${s.emoji}</span>
+        <h2>${s.question}</h2>
+        <div class="hint-tags">
+          <span class="hint-tag">💡 ${s.hint}</span>
+          <span class="hint-tag">👥 전 팀 공통 문제</span>
+        </div>
+        <button class="bonus-reveal-btn" id="bonus-reveal-${sid}" onclick="toggleBonus(${sid})">
+          🎉 정답 공개하기!
+        </button>
+        <div class="bonus-answer-box" id="bonus-answer-${sid}">
+          <p>💬 정답을 입력하세요</p>
+          <textarea placeholder="정답을 여기에 입력해주세요..."></textarea>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── 정답 토글 ──
+  function toggleAnswer(sid, idx) {
+    const btn = document.getElementById(`reveal-${sid}-${idx}`);
+    const box = document.getElementById(`answer-${sid}-${idx}`);
+    const isOpen = box.classList.contains('visible');
+    box.classList.toggle('visible');
+    btn.classList.toggle('open', !isOpen);
+    btn.textContent = isOpen ? '🎁 정답 공개 (주인공이 직접!)' : '🔒 정답 닫기';
+  }
+
+  // ── 보너스 토글 ──
+  function toggleBonus(sid) {
+    const btn = document.getElementById(`bonus-reveal-${sid}`);
+    const box = document.getElementById(`bonus-answer-${sid}`);
+    const isOpen = box.classList.contains('visible');
+    box.classList.toggle('visible');
+    btn.textContent = isOpen ? '🎉 정답 공개하기!' : '🔒 닫기';
+  }
+
+  // ── 점수 ──
+  function changeScore(team, delta) {
+    scores[team] = Math.max(0, scores[team] + delta);
+    document.getElementById('score-' + team).textContent = scores[team];
+  }
+
+  function resetScores() {
+    if (!confirm('점수를 초기화할까요?')) return;
+    ['A','B','C','D'].forEach(t => {
+      scores[t] = 0;
+      document.getElementById('score-' + t).textContent = 0;
+    });
+  }
+
+  // ── 세션 도트 ──
+  function renderDots() {
+    const container = document.getElementById('session-dots');
+    container.innerHTML = sessions.map((_, i) => `
+      <div class="session-dot ${i === currentSession ? 'active' : i < currentSession ? 'done' : ''}"
+           onclick="jumpSession(${i})"></div>
+    `).join('');
+  }
+
+  function jumpSession(idx) {
+    currentSession = idx;
+    renderSession();
+    renderDots();
+  }
+
+  // ── 결과 ──
+  function showResult() {
+    document.getElementById('content-area').innerHTML = '';
+    document.getElementById('session-nav') && null;
+
+    const result = document.getElementById('result-screen');
+    result.classList.add('visible');
+
+    const sorted = ['A','B','C','D']
+      .map(k => ({ key: k, score: scores[k] }))
+      .sort((a, b) => b.score - a.score);
+
+    const colors = { A: 'var(--a)', B: 'var(--b)', C: 'var(--c)', D: 'var(--d)' };
+    const heights = [130, 100, 80, 60];
+    const ranks = ['🥇','🥈','🥉','4️⃣'];
+    const podiumOrder = sorted.length >= 2 ? [sorted[1], sorted[0], sorted[2], sorted[3]].filter(Boolean) : sorted;
+
+    const podiumHeightsMap = {};
+    sorted.forEach((t, i) => { podiumHeightsMap[t.key] = heights[i]; });
+
+    result.innerHTML = `
+      <span class="result-emoji">🎊</span>
+      <h2>최종 결과!</h2>
+      <p>모두 수고하셨어요~ 🙌</p>
+      <div class="result-podium">
+        ${podiumOrder.map((t, pi) => {
+          const rank = sorted.findIndex(s => s.key === t.key);
+          const h = heights[rank];
+          return `
+            <div class="podium-item">
+              <div class="podium-rank">${ranks[rank]}</div>
+              <div class="podium-name" style="color:${colors[t.key]}">${t.key}조</div>
+              <div class="podium-bar" style="height:${h}px;background:${colors[t.key]};">
+                <span class="podium-score-big">${t.score}</span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      <button class="restart-btn" onclick="restart()">🔄 처음부터 다시!</button>
+    `;
+  }
+
+  function restart() {
+    currentSession = 0;
+    document.getElementById('result-screen').classList.remove('visible');
+    renderSession();
+    renderDots();
+  }
+
+  init();
+</script>
+</body>
+</html>
